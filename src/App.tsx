@@ -331,8 +331,8 @@ export default function App() {
       {/* HERO */}
       <header className="section hero" style={{ borderTop: 'none' }}>
         <div className="wrap">
-          <p className="hero-kicker">Santhosh Rubenraj Solomon · a claim, not a job title</p>
-          <h1>The dangerous thing should be impossible before it&rsquo;s possible.</h1>
+          <p className="hero-kicker">Santhosh Rubenraj Solomon · perspective &amp; practice</p>
+          <h1>Everything real was once imagined — until someone made it true.</h1>
           <div className="hero-body">
             <div>
               <p>
