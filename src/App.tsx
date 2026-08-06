@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, type ReactNode } from 'react'
+import { useState, useEffect, useRef, useMemo, type ReactNode } from 'react'
+import { SIG_D, SIG_DOT_D, SIG_VIEWBOX } from './signature'
 
 /* ------------------------------------------------------------------ links */
 const PROFILE = 'https://github.com/Santhosh-Rubenraj-Solomon'
@@ -55,7 +56,7 @@ const I = {
 /* ------------------------------------------------------------------ data */
 type Work = { metric: string; unit: string; title: string; desc: string; tag: string }
 const SURFBOARD: Work[] = [
-  { metric: '10,000+', unit: 'POS terminals', title: 'Device management, from scratch', desc: 'Designed and built the system that provisions and manages payment terminals across 3 markets — data model, APIs, hardware provisioning, granular access. Provisioning went from ~45 min to under 5.', tag: 'APIs · fleet · RBAC' },
+  { metric: '2,500+', unit: 'POS terminals', title: 'Device management, from scratch', desc: 'Designed and built the system that provisions and manages payment terminals across 3 markets — data model, APIs, hardware provisioning, granular access. Provisioning went from ~45 min to under 5.', tag: 'APIs · fleet · RBAC' },
   { metric: '−40%', unit: 'incidents', title: 'Payment methods, V2', desc: 'Led the ground-up rewrite of the core payment-methods service into a modular NestJS implementation — the path every transaction routes through.', tag: 'NestJS · core service' },
   { metric: '15+', unit: 'partner integrations', title: 'Developer & partner APIs', desc: 'Built the service-account APIs and Developer Portal external integrators build on — JWT auth across isolated environments, with contracts, versioning and deprecation workflows. Zero cross-environment security incidents.', tag: 'JWT · API contracts' },
   { metric: '1.8s → 0.6s', unit: 'p95 latency', title: '~87 services, made to talk less', desc: 'Consolidated shared business logic across the microservice estate and introduced async messaging + caching — cutting redundant inter-service calls and peak-load latency.', tag: 'event-driven · caching' },
@@ -151,6 +152,25 @@ function useTheme() {
   return { theme, toggle: () => setTheme((t) => (t === 'dark' ? 'light' : 'dark')) }
 }
 
+/* Entrance animations reverse when scrolled out of view — until the visitor reaches
+   the bottom of the page, after which everything locks into its final state. */
+const scrollState = { reachedBottom: false }
+
+function useScrollBottomLatch() {
+  useEffect(() => {
+    const check = () => {
+      if (!scrollState.reachedBottom &&
+        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 6) {
+        scrollState.reachedBottom = true
+      }
+    }
+    check()
+    window.addEventListener('scroll', check, { passive: true })
+    window.addEventListener('resize', check)
+    return () => { window.removeEventListener('scroll', check); window.removeEventListener('resize', check) }
+  }, [])
+}
+
 function useReveal() {
   useEffect(() => {
     const els = Array.from(document.querySelectorAll('.reveal'))
@@ -159,7 +179,10 @@ function useReveal() {
       return
     }
     const io = new IntersectionObserver(
-      (entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target) } }),
+      (entries) => entries.forEach((e) => {
+        if (e.isIntersecting) e.target.classList.add('in')
+        else if (!scrollState.reachedBottom) e.target.classList.remove('in')
+      }),
       { threshold: 0.12, rootMargin: '0px 0px -8% 0px' },
     )
     els.forEach((el) => io.observe(el))
@@ -320,8 +343,108 @@ function Section({ id, children }: { id?: string; children: ReactNode }) {
   )
 }
 
+function Signature() {
+  const ref = useRef<HTMLDivElement>(null)
+  const [drawn, setDrawn] = useState(false)
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setDrawn(true); return }
+    const el = ref.current
+    if (!el || !('IntersectionObserver' in window)) { setDrawn(true); return }
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => {
+        if (e.isIntersecting) setDrawn(true)
+        else if (!scrollState.reachedBottom) setDrawn(false)
+      }),
+      { threshold: 0.35 },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+  return (
+    <div className="sign">
+      <span className="dash">—</span>
+      <div ref={ref} className={`sig-wrap ${drawn ? 'drawn' : ''}`}>
+        <svg className="sig" viewBox={SIG_VIEWBOX} role="img" aria-label="Rubenraj, signed">
+          <path className="sig-draw" d={SIG_D} pathLength={1} />
+          <path className="sig-fill" d={SIG_D} />
+          <path className="sig-dot" d={SIG_DOT_D} />
+        </svg>
+      </div>
+    </div>
+  )
+}
+
+/* Count-up: every number in the string animates from 0 to its value when scrolled
+   into view — and back down when scrolled out (until the bottom-of-page lock). */
+function Stat({ value }: { value: string }) {
+  const ref = useRef<HTMLSpanElement>(null)
+  const [t, setT] = useState(0)
+  const tRef = useRef(0)
+  const rafRef = useRef(0)
+
+  const parts = useMemo(() => {
+    const out: { text?: string; target?: number; decimals?: number; comma?: boolean }[] = []
+    const re = /-?\d[\d,]*(?:\.\d+)?/g
+    let last = 0
+    let m: RegExpExecArray | null
+    while ((m = re.exec(value)) !== null) {
+      if (m.index > last) out.push({ text: value.slice(last, m.index) })
+      const raw = m[0]
+      out.push({ target: parseFloat(raw.replace(/,/g, '')), decimals: (raw.split('.')[1] || '').length, comma: raw.includes(',') })
+      last = m.index + raw.length
+    }
+    if (last < value.length) out.push({ text: value.slice(last) })
+    return out
+  }, [value])
+
+  useEffect(() => {
+    const set = (v: number) => { tRef.current = v; setT(v) }
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { set(1); return }
+    const el = ref.current
+    if (!el || !('IntersectionObserver' in window)) { set(1); return }
+    const animateTo = (target: number) => {
+      cancelAnimationFrame(rafRef.current)
+      const from = tRef.current
+      if (from === target) return
+      const t0 = performance.now()
+      const step = (now: number) => {
+        const p = Math.min(1, (now - t0) / 1100)
+        const eased = 1 - Math.pow(1 - p, 3)
+        set(from + (target - from) * eased)
+        if (p < 1) rafRef.current = requestAnimationFrame(step)
+      }
+      rafRef.current = requestAnimationFrame(step)
+    }
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => {
+        if (e.isIntersecting) animateTo(1)
+        else if (!scrollState.reachedBottom) animateTo(0)
+      }),
+      { threshold: 0.5 },
+    )
+    io.observe(el)
+    return () => { io.disconnect(); cancelAnimationFrame(rafRef.current) }
+  }, [])
+
+  return (
+    <span ref={ref}>
+      {parts.map((p, i) => {
+        if (p.text !== undefined) return <span key={i}>{p.text}</span>
+        const cur = (p.target ?? 0) * t
+        const shown = p.decimals
+          ? cur.toFixed(p.decimals)
+          : p.comma
+            ? Math.round(cur).toLocaleString('en-US')
+            : String(Math.round(cur))
+        return <span key={i}>{shown}</span>
+      })}
+    </span>
+  )
+}
+
 export default function App() {
   const { theme, toggle } = useTheme()
+  useScrollBottomLatch()
   useReveal()
   return (
     <>
@@ -332,7 +455,7 @@ export default function App() {
       <header className="section hero" style={{ borderTop: 'none' }}>
         <div className="wrap">
           <p className="hero-kicker">Santhosh Rubenraj Solomon · perspective &amp; practice</p>
-          <h1>Everything real was once imagined — until someone made it true.</h1>
+          <h1>Everything real was once imagined - until someone made it true.</h1>
           <div className="hero-body">
             <div>
               <p>
@@ -354,7 +477,7 @@ export default function App() {
               <StatePill />
               <div className="chips">
                 <span className="chip"><span className="k">4+</span> yrs · fintech</span>
-                <span className="chip"><span className="k">10k+</span> terminals</span>
+                <span className="chip"><span className="k">2.5k+</span> terminals</span>
                 <span className="chip"><span className="k">~87</span> services</span>
                 <span className="chip">CAPM · product</span>
               </div>
@@ -374,7 +497,7 @@ export default function App() {
         <div className="work-grid">
           {SURFBOARD.map((w) => (
             <article className="wcard" key={w.title}>
-              <div className="metric">{w.metric} <span className="u" style={{ fontSize: 13 }}>{w.unit}</span></div>
+              <div className="metric"><Stat value={w.metric} /> <span className="u" style={{ fontSize: 13 }}>{w.unit}</span></div>
               <h3>{w.title}</h3>
               <p>{w.desc}</p>
               <span className="tag">{w.tag}</span>
@@ -460,6 +583,7 @@ export default function App() {
               Along the way I picked up the other half of the job — writing the PRDs, mapping the user flows, arguing the API design
               with product stakeholders. I like being the person who can both spec the thing and build it.
             </p>
+            <Signature />
           </div>
           <div className="factlist">
             {FACTS.map((f) => (<div key={f.k}><span>{f.k}</span><b>{f.v}</b></div>))}

@@ -353,3 +353,24 @@ a { color: inherit; text-decoration: none; }
   .pcard-main, .pcard-foot, .demo { padding-inline: 18px; }
   .skillrow { grid-template-columns: 1fr; gap: 6px; }
 }
+
+/* ---------- real signature: true pen-draw (forward stroke), then ink settles + dot ---------- */
+.sign { display: flex; align-items: center; gap: 14px; margin-top: 30px; }
+.sign .dash { font-size: 20px; color: var(--faint); }
+.sig-wrap { display: inline-block; }
+.sig { width: clamp(140px, 20vw, 230px); height: auto; overflow: visible; display: block; }
+.sig-draw {
+  fill: none; stroke: var(--ink); stroke-width: 2.8;
+  stroke-linecap: round; stroke-linejoin: round;
+  stroke-dasharray: 0.62 1; stroke-dashoffset: 0.62;
+  transition: stroke-dashoffset 2.3s cubic-bezier(0.45, 0.05, 0.25, 1);
+}
+.sig-fill { fill: var(--ink); opacity: 0; transition: opacity 0.4s ease 0s; }
+.sig-dot { fill: var(--ink); opacity: 0; transition: opacity 0.25s ease 0s; }
+.sig-wrap.drawn .sig-draw { stroke-dashoffset: 0; }
+.sig-wrap.drawn .sig-fill { opacity: 1; transition: opacity 0.6s ease 1.95s; }
+.sig-wrap.drawn .sig-dot { opacity: 1; transition: opacity 0.3s ease 2.3s; }
+@media (prefers-reduced-motion: reduce) {
+  .sig-draw { display: none; }
+  .sig-fill, .sig-dot { opacity: 1; transition: none; }
+}
