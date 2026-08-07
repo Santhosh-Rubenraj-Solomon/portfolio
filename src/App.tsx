@@ -102,6 +102,14 @@ const PROJECTS: Project[] = [
     href: `${REPO}/AI-REPO-agent`, run: 'typechecks clean · internal WIP', runKind: 'demo', demo: null,
   },
   {
+    name: 'AI Diff Reviewer',
+    one: 'A code reviewer for the diff you haven’t pushed yet. It runs `git blame` on the exact lines you changed and hands the model that history — churn, prior fixes, the revert someone did last month — alongside the diff.',
+    whyLabel: 'The decision',
+    why: 'The category sits at roughly half precision: one comment in two is wrong. I didn’t cap the comment count to hide that — a cap silently drops the twelfth real bug. Every finding is sent back with instructions to argue it’s wrong, and what can’t defend itself never prints. Zero comments is a valid result. Confidence scores were the obvious filter; I rejected them because they cluster and don’t discriminate.',
+    stack: ['Bun', 'TypeScript', 'Gemini', 'git blame', 'zero deps'],
+    href: 'https://github.com/Santhosh-Rubenraj-Solomon/ai-diff-reviewer', run: 'caught a planted regression · 38 tests', runKind: 'demo', demo: null,
+  },
+  {
     name: 'AI Code Analyzer',
     one: 'Paste a GitHub URL into a Telegram chat; it clones the repo, detects the tech stack, and answers architecture, breaking-change and bug-fix questions in plain English.',
     whyLabel: 'The nice bit',
