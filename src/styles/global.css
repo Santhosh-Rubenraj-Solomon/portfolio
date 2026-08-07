@@ -235,6 +235,10 @@ a { color: inherit; text-decoration: none; }
 .pcard .oneliner { margin: 0; color: var(--muted); font-size: 15.5px; line-height: 1.6; max-width: 68ch; }
 .pcard .why { margin: 12px 0 0; padding-left: 15px; border-left: 2px solid var(--accent); color: var(--ink); font-size: 14.5px; line-height: 1.6; max-width: 68ch; }
 .pcard .why .lbl { font-family: var(--font-mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); display: block; margin-bottom: 5px; }
+.pcard .fix { margin: 12px 0 0; padding: 12px 15px; border-left: 2px solid var(--accent); border-radius: 0 8px 8px 0; background: var(--accent-tint); color: var(--muted); font-size: 14px; line-height: 1.6; max-width: 68ch; }
+.pcard .fix .lbl { font-family: var(--font-mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); display: block; margin-bottom: 5px; }
+.pcard .fix .fixlink { color: var(--accent); font-weight: 600; border-bottom: 1px solid currentColor; white-space: nowrap; }
+.pcard .fix .fixlink:hover { color: var(--accent-2); }
 .pcard-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding: 15px 26px; border-top: 1px solid var(--line); background: var(--surface-2); }
 .stack { display: flex; flex-wrap: wrap; gap: 6px; }
 .stack i { font-style: normal; font-family: var(--font-mono); font-size: 11px; color: var(--muted); border: 1px solid var(--line-2); border-radius: 6px; padding: 3px 8px; background: var(--surface); }

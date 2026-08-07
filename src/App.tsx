@@ -68,6 +68,7 @@ type Demo = 'concurrency' | 'guards' | null
 type Project = {
   name: string; one: string; whyLabel: string; why: string
   stack: string[]; href: string; run: string; runKind: 'live' | 'demo'; demo: Demo
+  fix?: { label: string; text: string; href: string; hrefLabel: string }
 }
 const PROJECTS: Project[] = [
   {
@@ -76,7 +77,13 @@ const PROJECTS: Project[] = [
     whyLabel: 'The decision',
     why: 'The Redis lock is deliberately never released on success — its 10-second TTL doubles as an idempotency window, so a duplicate txId inside 10s is rejected (429) instead of reprocessed. The escape hatch for the opposite policy is written down. A tradeoff, stated and reversible — not an accident.',
     stack: ['NestJS', 'Redis', 'Nginx LB', 'Vercel AI SDK', 'Docker'],
-    href: `${REPO}/ai-ds-ledger-reconciler`, run: 'builds clean · full run needs Docker + key', runKind: 'demo', demo: 'concurrency',
+    href: `${REPO}/ai-ds-ledger-reconciler`, run: 'builds clean · lock verified on Redis', runKind: 'demo', demo: 'concurrency',
+    fix: {
+      label: 'What I got wrong → fixed',
+      text: 'I first shipped this with the distributed lock guarding a per-replica in-memory ledger — so after a heal, the three replicas disagreed. I said so out loud. Then I closed it: the ledger moved to a shared Postgres store (TypeORM, atomic heal), and the lock became a reusable @IdempotencyLock() NestJS module.',
+      href: 'https://github.com/Santhosh-Rubenraj-Solomon/AI_agents/commit/d2dbd6d4d44d0525ffc172bad215740d5b278dbb',
+      hrefLabel: 'the commit that closed it',
+    },
   },
   {
     name: 'Job-Hunt Agent',
@@ -523,6 +530,12 @@ export default function App() {
                   <span className={`runbadge ${p.runKind === 'demo' ? 'demo' : ''}`}><span className="led" />{p.run}</span>
                 </div>
                 <p className="why"><span className="lbl">{p.whyLabel}</span>{p.why}</p>
+                {p.fix && (
+                  <p className="fix">
+                    <span className="lbl">{p.fix.label}</span>{p.fix.text}{' '}
+                    <a className="fixlink" href={p.fix.href} target="_blank" rel="noopener">{p.fix.hrefLabel} ↗</a>
+                  </p>
+                )}
               </div>
               {p.demo === 'concurrency' && <ConcurrencyDemo />}
               {p.demo === 'guards' && <GuardDemo />}
