@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, type ReactNode } from 'react'
+import { useState, useEffect, useRef, useMemo, type ReactNode, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { SIG_D, SIG_DOT_D, SIG_VIEWBOX } from './signature'
 
 /* ------------------------------------------------------------------ links */
@@ -10,40 +10,18 @@ const REPO = 'https://github.com/Santhosh-Rubenraj-Solomon/AI_agents/tree/main/D
 /* ------------------------------------------------------------------ icons */
 const I = {
   arrow: (
-    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
       <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
   down: (
-    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
       <path d="M8 3v10M4 9l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
   github: (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
       <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z" />
-    </svg>
-  ),
-  linkedin: (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-      <path d="M13.63 0H2.37A2.35 2.35 0 000 2.33v11.34A2.35 2.35 0 002.37 16h11.26A2.35 2.35 0 0016 13.67V2.33A2.35 2.35 0 0013.63 0zM4.86 13.12H2.9V6.4h1.96v6.72zM3.88 5.5a1.14 1.14 0 110-2.28 1.14 1.14 0 010 2.28zm9.24 7.62h-1.96V9.74c0-.82-.02-1.87-1.14-1.87-1.14 0-1.32.9-1.32 1.81v3.44H6.75V6.4h1.88v.92h.03c.26-.5.9-1.02 1.85-1.02 1.98 0 2.35 1.3 2.35 3v3.82z" />
-    </svg>
-  ),
-  mail: (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <rect x="1.5" y="3" width="13" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M2 4l6 4.5L14 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  ),
-  sun: (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3 3l1 1M12 12l1 1M13 3l-1 1M4 12l-1 1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-    </svg>
-  ),
-  moon: (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M13.5 9.5A5.5 5.5 0 016.5 2.5a5.5 5.5 0 107 7z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
     </svg>
   ),
   check: (
@@ -56,15 +34,15 @@ const I = {
 /* ------------------------------------------------------------------ data */
 type Work = { metric: string; unit: string; title: string; desc: string; tag: string }
 const SURFBOARD: Work[] = [
-  { metric: '2,500+', unit: 'POS terminals', title: 'Device management, from scratch', desc: 'Designed and built the system that provisions and manages payment terminals across 3 markets — data model, APIs, hardware provisioning, granular access. Provisioning went from ~45 min to under 5.', tag: 'APIs · fleet · RBAC' },
-  { metric: '−40%', unit: 'incidents', title: 'Payment methods, V2', desc: 'Led the ground-up rewrite of the core payment-methods service into a modular NestJS implementation — the path every transaction routes through.', tag: 'NestJS · core service' },
-  { metric: '15+', unit: 'partner integrations', title: 'Developer & partner APIs', desc: 'Built the service-account APIs and Developer Portal external integrators build on — JWT auth across isolated environments, with contracts, versioning and deprecation workflows. Zero cross-environment security incidents.', tag: 'JWT · API contracts' },
-  { metric: '1.8s → 0.6s', unit: 'p95 latency', title: '~87 services, made to talk less', desc: 'Consolidated shared business logic across the microservice estate and introduced async messaging + caching — cutting redundant inter-service calls and peak-load latency.', tag: 'event-driven · caching' },
-  { metric: '−20 hrs', unit: 'per week', title: 'Logistics & shipping migration', desc: 'Re-architected the shipping-provider integration with secure async webhooks for real-time delivery tracking — status lag dropped from hours to under a minute.', tag: 'webhooks · logistics' },
-  { metric: '−50%', unit: 'time-to-acknowledge', title: 'Incident ticketing + ops agents', desc: 'Replaced ad-hoc Slack alerts with a raise → monitor → resolve workflow, and shipped internal AI agents for high-frequency ops — around 15 hrs/week back to the team.', tag: 'AI agents · ops' },
+  { metric: '2,500+', unit: 'POS terminals', title: 'Device management, from scratch', desc: 'Provisions and manages POS terminals across 3 markets — data model, APIs, hardware provisioning, RBAC. Provisioning: 45 min → under 5.', tag: 'APIs · fleet · RBAC' },
+  { metric: '−40%', unit: 'incidents', title: 'Payment methods, V2', desc: 'Ground-up NestJS rewrite of the core payment-methods service — the path every transaction routes through.', tag: 'NestJS · core service' },
+  { metric: '15+', unit: 'partner integrations', title: 'Developer & partner APIs', desc: 'Service-account APIs + Developer Portal for external integrators — JWT across isolated envs, versioned contracts. Zero cross-env security incidents.', tag: 'JWT · API contracts' },
+  { metric: '1.8s → 0.6s', unit: 'p95 latency', title: '~87 services, made to talk less', desc: 'Consolidated shared logic across the estate; async messaging + caching cut redundant calls and peak-load latency.', tag: 'event-driven · caching' },
+  { metric: '−20 hrs', unit: 'per week', title: 'Logistics & shipping migration', desc: 'Re-architected the shipping integration with secure async webhooks — delivery-status lag: hours → under a minute.', tag: 'webhooks · logistics' },
+  { metric: '−50%', unit: 'time-to-ack', title: 'Incident ticketing + ops agents', desc: 'Replaced ad-hoc Slack alerts with a raise → monitor → resolve flow + ops agents. ~15 hrs/week back to the team.', tag: 'AI agents · ops' },
 ]
 
-type Demo = 'concurrency' | 'guards' | null
+type Demo = 'concurrency' | 'guards' | 'pipeline' | 'review' | 'analyzer' | 'risk' | null
 type Project = {
   name: string; one: string; whyLabel: string; why: string
   stack: string[]; href: string; run: string; runKind: 'live' | 'demo'; demo: Demo
@@ -73,65 +51,65 @@ type Project = {
 const PROJECTS: Project[] = [
   {
     name: 'AI-DS Ledger Reconciler',
-    one: 'A distributed reconciler for the classic fintech headache — our books say PENDING but the processor says paid. Payment webhooks are de-duplicated across a cluster, and an AI agent inspects the ledger and self-heals each transaction’s status.',
-    whyLabel: 'The decision',
-    why: 'The Redis lock is deliberately never released on success — its 10-second TTL doubles as an idempotency window, so a duplicate txId inside 10s is rejected (429) instead of reprocessed. The escape hatch for the opposite policy is written down. A tradeoff, stated and reversible — not an accident.',
+    one: 'When you tap your card, the “payment succeeded” message can arrive several times (networks retry). This makes sure the purchase is recorded exactly once — never double-counted — even across many servers. An AI then checks our records against the bank and fixes any that drifted.',
+    whyLabel: 'The clever bit',
+    why: 'The safety “lock” that prevents double-processing is deliberately held for 10 seconds after a success — so any duplicate “paid!” in that window is quietly ignored, not charged again. Simple, and easy to reverse if you ever want the opposite.',
     stack: ['NestJS', 'Redis', 'Nginx LB', 'Vercel AI SDK', 'Docker'],
     href: `${REPO}/ai-ds-ledger-reconciler`, run: 'builds clean · lock verified on Redis', runKind: 'demo', demo: 'concurrency',
     fix: {
       label: 'What I got wrong → fixed',
-      text: 'I first shipped this with the distributed lock guarding a per-replica in-memory ledger — so after a heal, the three replicas disagreed. I said so out loud. Then I closed it: the ledger moved to a shared Postgres store (TypeORM, atomic heal), and the lock became a reusable @IdempotencyLock() NestJS module.',
+      text: 'At first the safety check ran on each server’s private copy of the records, so servers could disagree. I flagged it, then fixed it — one shared database everyone reads, and the safety check became a reusable building block.',
       href: 'https://github.com/Santhosh-Rubenraj-Solomon/AI_agents/commit/d2dbd6d4d44d0525ffc172bad215740d5b278dbb',
       hrefLabel: 'the commit that closed it',
     },
   },
   {
     name: 'Job-Hunt Agent',
-    one: 'An autonomous job-search agent that finds real openings, tailors the résumé per posting, and routes every application through a human approval gate.',
-    whyLabel: 'The decision',
-    why: 'I engineered it so it physically cannot auto-submit — four independent, each-sufficient guards. And I severed the graph edge to the submit step rather than using an interrupt: an interrupt is re-enabled by a config flag; a deleted edge isn’t. Defense in depth over one switch.',
+    one: 'A robot that searches job boards, tailors your CV to each posting, and lines up applications — but is built so it can never actually hit “Submit” without a human saying yes.',
+    whyLabel: 'The clever bit',
+    why: 'It’s blocked from auto-applying in four separate ways, each enough on its own. Flip one switch by accident and three other locks still hold. Safety you can’t disable by mistake.',
     stack: ['Python', 'LangGraph', 'Gemini', 'Playwright', 'FastAPI'],
     href: `${REPO}/AI-job-hunt`, run: 'runs · submission inert by design', runKind: 'demo', demo: 'guards',
   },
   {
     name: 'ECR Dev Factory',
-    one: 'A Slack-native dev agent: a teammate types /ecr and describes a task in plain English; it plans the work, writes the code in an isolated git worktree, self-reviews and fixes it, then opens a GitLab merge request — with a human approval gate before a line is written.',
-    whyLabel: 'Why it holds up',
-    why: 'A durable, resumable phase machine — analyze → approve → code → review-loop → finalize — persisted in SQLite, each phase a swappable agent. Safety is the design: throwaway worktrees, a hard path-scope boundary, and prompts piped through temp files to block injection.',
+    one: 'Ask for a coding task in plain English in your team chat, and it does the grunt work — plans it, writes the code, checks its own work, and prepares it for a teammate to review. Nothing ships until a human approves.',
+    whyLabel: 'The clever bit',
+    why: 'It works only inside a safe sandbox it can’t escape, and it pauses for your “go-ahead” before writing anything. An assistant that speeds you up without ever going rogue.',
     stack: ['TypeScript', 'Slack Bolt', 'Claude CLI', 'SQLite', 'GitLab'],
-    href: `${REPO}/AI-REPO-agent`, run: 'typechecks clean · internal WIP', runKind: 'demo', demo: null,
+    href: `${REPO}/AI-REPO-agent`, run: 'typechecks clean · internal WIP', runKind: 'demo', demo: 'pipeline',
   },
   {
     name: 'AI Diff Reviewer',
-    one: 'A code reviewer for the diff you haven’t pushed yet. It runs `git blame` on the exact lines you changed and hands the model that history — churn, prior fixes, the revert someone did last month — alongside the diff.',
-    whyLabel: 'The decision',
-    why: 'The category sits at roughly half precision: one comment in two is wrong. I didn’t cap the comment count to hide that — a cap silently drops the twelfth real bug. Every finding is sent back with instructions to argue it’s wrong, and what can’t defend itself never prints. Zero comments is a valid result. Confidence scores were the obvious filter; I rejected them because they cluster and don’t discriminate.',
+    one: 'A second pair of eyes on your code before it goes live. It looks at exactly what you changed — and the history of those lines — and points out likely bugs.',
+    whyLabel: 'The clever bit',
+    why: 'Most auto-reviewers spam you with wrong guesses. This one makes every comment “defend itself” first — anything unsure is thrown away — so it only speaks up when it’s fairly sure. Saying nothing is a perfectly good answer.',
     stack: ['Bun', 'TypeScript', 'Gemini', 'git blame', 'zero deps'],
-    href: 'https://github.com/Santhosh-Rubenraj-Solomon/ai-diff-reviewer', run: 'caught a planted regression · 38 tests', runKind: 'demo', demo: null,
+    href: 'https://github.com/Santhosh-Rubenraj-Solomon/ai-diff-reviewer', run: 'caught a planted regression · 38 tests', runKind: 'demo', demo: 'review',
   },
   {
     name: 'AI Code Analyzer',
-    one: 'Paste a GitHub URL into a Telegram chat; it clones the repo, detects the tech stack, and answers architecture, breaking-change and bug-fix questions in plain English.',
-    whyLabel: 'The nice bit',
-    why: 'Stack detection is LLM-free and deterministic — fast, and provable by a standalone demo anyone can run with zero secrets. The model (Claude or GPT, pluggable) sits on top only for the deep reasoning. It’s the read-and-understand sibling to the ship-it dev agent.',
+    one: 'Paste a link to any codebase into a chat and ask questions in plain English — what it’s built with, what a change might break, how to fix a bug.',
+    whyLabel: 'The clever bit',
+    why: 'It works out what a project is built with instantly and for free — then only spends the expensive AI on the genuinely hard questions.',
     stack: ['TypeScript', 'Telegraf', 'Claude / GPT-4o', 'SQLite'],
-    href: `${REPO}/AI-agent-code`, run: 'stack-detection demo verified', runKind: 'demo', demo: null,
+    href: `${REPO}/AI-agent-code`, run: 'stack-detection demo verified', runKind: 'demo', demo: 'analyzer',
   },
   {
     name: 'Car Repossession Dashboard',
-    one: 'A collections-and-risk view over an auto-loan book: where repossessions concentrate, and which overdue accounts to act on first — replacing a manual spreadsheet.',
-    whyLabel: 'The product bit',
-    why: 'It doesn’t just report a rate; it turns the portfolio into decisions. Risk is segmented by credit band, days-past-due and region (loss climbs steeply past 90 DPD), and a watchlist ranks accounts with a concrete next action: Call → Escalate → Field visit → Initiate repossession.',
+    one: 'Helps a car-loan lender see which overdue borrowers to act on first — turning a messy spreadsheet into a clear “who to call today” list.',
+    whyLabel: 'The clever bit',
+    why: 'It doesn’t just show a number. It ranks each account by risk and names the exact next step — a friendly reminder, a warning, a field visit, or repossession.',
     stack: ['Node', 'Express', 'SQLite', 'Dashboard'],
-    href: PROFILE, run: 'runs end-to-end · synthetic data', runKind: 'live', demo: null,
+    href: PROFILE, run: 'runs end-to-end · synthetic data', runKind: 'live', demo: 'risk',
   },
 ]
 
 const APPROACH = [
-  { n: '01', title: 'I write the PRD, not just the ticket', desc: 'Two years shaping product direction at Surfboard — PRDs, user flows, API design from the user’s side. CAPM-certified in product management.' },
-  { n: '02', title: 'I optimize for the decision', desc: 'The car-loan dashboard doesn’t report a rate; it tells a collector who to call first. A good backend surfaces decisions, not rows.' },
-  { n: '03', title: 'Safety is a feature, not a flag', desc: 'The dangerous action is made structurally unreachable first, then deliberately wired. A config toggle you can flip is not a safety mechanism.' },
-  { n: '04', title: 'I state the seam', desc: 'Every system here ships with the one thing it gets wrong said out loud. That’s the line between a demo and a decision.' },
+  { n: '01', title: 'I write the PRD, not just the ticket', desc: 'Two years shaping product at Surfboard — PRDs, user flows, API design from the user’s side. CAPM-certified.' },
+  { n: '02', title: 'I optimize for the decision', desc: 'The car-loan dashboard doesn’t report a rate — it tells a collector who to call first. Surface decisions, not rows.' },
+  { n: '03', title: 'Safety is a feature, not a flag', desc: 'The dangerous action is made unreachable first, then deliberately wired. A toggle you can flip is not a safety mechanism.' },
+  { n: '04', title: 'I state the seam', desc: 'Every system ships with the one thing it gets wrong said out loud — the line between a demo and a decision.' },
 ]
 
 const SKILLS = [
@@ -144,31 +122,23 @@ const SKILLS = [
   { cat: 'Product', vals: ['PRDs', 'User flows', 'Wireframes', 'Information architecture', 'Roadmapping'] },
 ]
 
+const READOUT = [
+  { k: 'role', v: <>Backend eng · <span className="hl">payments</span></> },
+  { k: 'based', v: 'Chennai · UTC+5:30' },
+  { k: 'exp', v: '4+ yrs @ Surfboard' },
+  { k: 'cert', v: 'CAPM · product mgmt' },
+  { k: 'stack', v: 'TS · NestJS · Postgres · Redis' },
+]
+
 const FACTS = [
   { k: 'Based', v: 'Chennai, India' },
-  { k: 'Since', v: '2022 · Surfboard Payments' },
-  { k: 'Focus', v: 'Payments infra + AI agents' },
-  { k: 'Certified', v: 'CAPM — Product Management' },
-  { k: 'Degree', v: 'B.E. EIE — St. Joseph’s, Chennai' },
+  { k: 'Since', v: '2022 · Surfboard' },
+  { k: 'Focus', v: 'Payments backends + AI' },
+  { k: 'Cert', v: 'CAPM — Product Mgmt' },
+  { k: 'Degree', v: 'B.E. EIE — St. Joseph’s' },
 ]
 
 /* ------------------------------------------------------------------ hooks */
-function useTheme() {
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    if (typeof document !== 'undefined' && document.documentElement.dataset.theme)
-      return document.documentElement.dataset.theme as 'light' | 'dark'
-    if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark'
-    return 'light'
-  })
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme
-    try { localStorage.setItem('theme', theme) } catch { /* ignore */ }
-  }, [theme])
-  return { theme, toggle: () => setTheme((t) => (t === 'dark' ? 'light' : 'dark')) }
-}
-
-/* Entrance animations reverse when scrolled out of view — until the visitor reaches
-   the bottom of the page, after which everything locks into its final state. */
 const scrollState = { reachedBottom: false }
 
 function useScrollBottomLatch() {
@@ -205,7 +175,43 @@ function useReveal() {
   }, [])
 }
 
-/* ------------------------------------------------------------ signature pill */
+function useClock() {
+  const [t, setT] = useState('––:––:––')
+  useEffect(() => {
+    const fmt = () => new Date().toLocaleTimeString('en-GB', { timeZone: 'Asia/Kolkata', hour12: false })
+    setT(fmt())
+    const id = window.setInterval(() => setT(fmt()), 1000)
+    return () => clearInterval(id)
+  }, [])
+  return t
+}
+
+/* ------------------------------------------------------------ status bar */
+function StatusBar({ active, onOpenPalette }: { active: string; onOpenPalette: () => void }) {
+  const clock = useClock()
+  const path = active ? `:~/${active}$` : ':~$'
+  return (
+    <div className="bar">
+      <div className="wrap bar-inner">
+        <div className="bar-left">
+          <a href="#top" className="mark" aria-label="Home">SRS</a>
+          <button className="bar-path" onClick={onOpenPalette} title="Command palette (⌘K)">
+            santhosh<b>@payments-backend</b>{path}<span className="bar-hint">⌘K</span>
+          </button>
+        </div>
+        <nav className="bar-nav">
+          {NAV.map((n) => <a key={n} href={`#${n}`} className={active === n ? 'active' : ''}>{n}</a>)}
+        </nav>
+        <div className="bar-right">
+          <span className="status-dot"><i />open to work</span>
+          <span className="clock">IST&nbsp;<b>{clock}</b></span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------ safety chip */
 function StatePill() {
   const [on, setOn] = useState(false)
   useEffect(() => {
@@ -221,6 +227,24 @@ function StatePill() {
   )
 }
 
+/* ------------------------------------------------------------ panel */
+function Panel({ id, cmd, tag, children }: { id: string; cmd: ReactNode; tag?: string; children: ReactNode }) {
+  return (
+    <section id={id} className="panel">
+      <div className="wrap reveal">
+        <div className="panel-head">
+          <span className="prompt">›</span>
+          <span className="cmd">{cmd}</span>
+          <span className="cursor" aria-hidden="true" />
+          <span className="spacer" />
+          {tag && <span className="tag">{tag}</span>}
+        </div>
+        {children}
+      </div>
+    </section>
+  )
+}
+
 /* ------------------------------------------------------------ concurrency demo */
 function ConcurrencyDemo() {
   const N = 10
@@ -228,7 +252,6 @@ function ConcurrencyDemo() {
   const [release, setRelease] = useState(false)
   const [fired, setFired] = useState(false)
   const timers = useRef<number[]>([])
-
   const fire = () => {
     timers.current.forEach(clearTimeout)
     setFired(true)
@@ -237,7 +260,6 @@ function ConcurrencyDemo() {
       const id = window.setTimeout(() => {
         setState((prev) => {
           const next = [...prev]
-          // first request acquires; if "release on success", a later one can also pass
           if (i === 0) next[i] = 'pass'
           else next[i] = release && i === N - 1 ? 'pass' : 'block'
           return next
@@ -247,37 +269,36 @@ function ConcurrencyDemo() {
     }
   }
   useEffect(() => () => timers.current.forEach(clearTimeout), [])
-
   const passes = state.filter((s) => s === 'pass').length
   return (
     <div className="demo">
       <div className="demo-head">
-        <span className="demo-title">Concurrency · one txId, {N} identical webhooks</span>
+        <span className="demo-title">one purchase · {N} duplicate “paid!” messages</span>
         <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
           <span className="demo-toggle" role="switch" aria-checked={release} tabIndex={0}
             onClick={() => setRelease((v) => !v)}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setRelease((v) => !v) } }}>
-            <span className={`switch ${release ? 'on' : ''}`} />release on success
+            <span className={`switch ${release ? 'on' : ''}`} />unlock early
           </span>
-          <button className="demo-btn" onClick={fire}>Fire {N} →</button>
+          <button className="demo-btn" onClick={fire}>send {N} “paid!” →</button>
         </div>
       </div>
       <div className="txgrid">
         {state.map((s, i) => (
           <div key={i} className={`tx ${s}`}>
-            <div className="id">txId 9f3a</div>
+            <div className="id">“paid!”</div>
             <div className="st">
-              {s === 'idle' ? '— waiting' : s === 'pass' ? <><span className="led" />200 acquired</> : <><span className="led" />429 rejected</>}
+              {s === 'idle' ? '— waiting' : s === 'pass' ? <><span className="led" />recorded once</> : <><span className="led" />ignored (dupe)</>}
             </div>
           </div>
         ))}
       </div>
       <p className="demo-note">
         {!fired
-          ? 'Fire ten identical webhooks at the cluster and watch the lock arbitrate.'
+          ? 'The same purchase, ten “paid!” messages (network retries). Watch it get recorded once.'
           : release
-            ? `${passes} acquired — releasing on success reopens the window: a later duplicate reprocesses (the reconcile hole).`
-            : `1 acquired, ${N - 1} rejected — holding the lock for its full TTL turns the mutex into a dedup window.`}
+            ? `${passes} got through — unlocking early re-opens the door, so a late duplicate is processed again (a double-charge).`
+            : `Recorded once, ${N - 1} duplicates ignored — the lock is held long enough to swallow every retry.`}
       </p>
     </div>
   )
@@ -285,10 +306,10 @@ function ConcurrencyDemo() {
 
 /* ------------------------------------------------------------ guard demo */
 const GUARDS = [
-  { name: 'TEST_MODE off (live keys)', sub: 'guard 1' },
-  { name: 'auto_submit: true', sub: 'guard 2' },
-  { name: 'human types APPROVE', sub: 'guard 3' },
-  { name: 'submit .click() wired', sub: 'guard 4' },
+  { name: 'using real job sites (not a test)', sub: 'lock 1' },
+  { name: 'auto-apply turned on', sub: 'lock 2' },
+  { name: 'you typed “APPROVE”', sub: 'lock 3' },
+  { name: 'the “Submit” button is connected', sub: 'lock 4' },
 ]
 function GuardDemo() {
   const [on, setOn] = useState<boolean[]>([false, false, false, false])
@@ -297,8 +318,8 @@ function GuardDemo() {
   return (
     <div className="demo">
       <div className="demo-head">
-        <span className="demo-title">Four independent guards · all must fall to submit</span>
-        <span className="runbadge demo"><span className="led" />each one alone blocks it</span>
+        <span className="demo-title">four safety locks · all must open before it can apply</span>
+        <span className="runbadge"><span className="led" />any one alone stops it</span>
       </div>
       <div className="guards">
         {GUARDS.map((g, i) => (
@@ -313,51 +334,205 @@ function GuardDemo() {
       </div>
       <div className="submit-zone">
         <button className={`submit-btn ${armed ? 'armed' : ''}`} disabled={!armed}
-          onClick={() => setNote('In the repo, guard 4 stays commented out — so this button never actually arms in production.')}>
-          {armed ? 'Submit application' : 'Submit — unreachable'}
+          onClick={() => setNote('In the real code, the last lock is left disconnected — so it can never actually apply on its own.')}>
+          {armed ? 'Apply to job' : 'Apply — blocked'}
         </button>
         <span className="demo-note" style={{ margin: 0 }}>
-          {note || (armed ? 'All four flipped. Only now does the edge to submit exist.' : 'Flip one and it’s still blocked three other ways.')}
+          {note || (armed ? 'All four locks open — only now could it apply.' : 'Open one lock and it’s still blocked three other ways.')}
         </span>
       </div>
     </div>
   )
 }
 
-/* ------------------------------------------------------------------ sections */
-function Nav({ theme, toggle }: { theme: 'light' | 'dark'; toggle: () => void }) {
-  const [scrolled, setScrolled] = useState(false)
-  useEffect(() => {
-    const on = () => setScrolled(window.scrollY > 8)
-    on(); window.addEventListener('scroll', on, { passive: true })
-    return () => window.removeEventListener('scroll', on)
-  }, [])
+/* ------------------------------------------------------------ pipeline demo (ECR) */
+const PIPE = ['Understand the task', 'Wait for your approval', 'Write the code (safe sandbox)', 'Check its own work', 'Ready for review']
+function PipelineDemo() {
+  const [step, setStep] = useState(-1)
+  const timers = useRef<number[]>([])
+  const clearAll = () => { timers.current.forEach(clearTimeout); timers.current = [] }
+  useEffect(() => () => clearAll(), [])
+  const start = () => { clearAll(); setStep(0); timers.current.push(window.setTimeout(() => setStep(1), 850)) }
+  const approve = () => {
+    setStep(2)
+    timers.current.push(window.setTimeout(() => setStep(3), 850))
+    timers.current.push(window.setTimeout(() => setStep(4), 1700))
+  }
+  const reset = () => { clearAll(); setStep(-1) }
   return (
-    <nav className={`nav ${scrolled ? 'scrolled' : ''}`}>
-      <div className="wrap nav-inner">
-        <a className="brand" href="#top"><span className="dot" />Santhosh</a>
-        <div className="nav-links">
-          <a className="hide-sm" href="#work">Work</a>
-          <a className="hide-sm" href="#projects">Projects</a>
-          <a className="hide-sm" href="#approach">Approach</a>
-          <a className="nav-cta" href="#contact">Contact</a>
-          <button className="theme-toggle" onClick={toggle} aria-label="Toggle colour theme">
-            {theme === 'dark' ? I.sun : I.moon}
-          </button>
+    <div className="demo">
+      <div className="demo-head">
+        <span className="demo-title">plain-english request → reviewed code, with a human gate</span>
+        <button className="demo-btn" onClick={step === -1 ? start : reset}>{step === -1 ? '/ecr “add dark mode” ▸' : 'reset'}</button>
+      </div>
+      <div className="pipe">
+        {PIPE.map((s, i) => {
+          const st = step < 0 ? 'idle' : i < step ? 'done' : i === step ? 'cur' : 'idle'
+          const gate = i === 1
+          return (
+            <div key={i} className={`pipe-step ${st} ${gate ? 'gate' : ''}`}>
+              <span className="ps-dot">{st === 'done' ? I.check : i + 1}</span>
+              <span className="ps-t">{s}</span>
+              {gate && i === step && <button className="ps-approve" onClick={approve}>approve ▸</button>}
+            </div>
+          )
+        })}
+      </div>
+      <p className="demo-note">
+        {step < 0 ? 'Ask for a task in plain English — it does the work but waits for your “go”.'
+          : step === 1 ? 'Paused — nothing gets written until you approve.'
+          : step >= 4 ? 'Done: a ready-to-review change, and no one touched a terminal.'
+          : 'Working…'}
+      </p>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------ review demo (diff reviewer) */
+const REVIEW = [
+  { t: 'This could crash if the list is empty', keep: true },
+  { t: 'Maybe rename this variable?', keep: false },
+  { t: 'This payment could run twice on a retry', keep: true },
+  { t: 'Consider a different style here', keep: false },
+  { t: 'This date is off by one in a leap year', keep: true },
+  { t: 'This might be a little slow', keep: false },
+]
+function ReviewDemo() {
+  const [judged, setJudged] = useState(false)
+  const kept = REVIEW.filter((r) => r.keep).length
+  return (
+    <div className="demo">
+      <div className="demo-head">
+        <span className="demo-title">6 possible comments · only the confident ones survive</span>
+        <button className="demo-btn" onClick={() => setJudged((v) => !v)}>{judged ? 'reset' : 'make each prove itself ▸'}</button>
+      </div>
+      <div className="rev-list">
+        {REVIEW.map((r, i) => (
+          <div key={i} className={`rev-item ${judged ? (r.keep ? 'keep' : 'drop') : ''}`}>
+            <span className="rev-mark">{judged ? (r.keep ? I.check : '✕') : '•'}</span>
+            <span className="rev-t">{r.t}</span>
+            {judged && <span className="rev-tag">{r.keep ? 'kept' : 'dropped — not sure enough'}</span>}
+          </div>
+        ))}
+      </div>
+      <p className="demo-note">{judged ? `${kept} kept, ${REVIEW.length - kept} thrown away. Staying quiet is a valid answer.` : 'Most auto-reviewers dump every guess on you. This one throws away anything it can’t defend.'}</p>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------ analyzer demo (code analyzer) */
+const REPOS = [
+  { name: 'an online shop', bars: [['TypeScript', 64], ['CSS', 22], ['other', 14]] as [string, number][], stack: 'React · Node · Postgres', q: 'What’s risky to change?', a: 'The checkout & payment flow — a bug there costs real money.' },
+  { name: 'a payments API', bars: [['TypeScript', 71], ['SQL', 18], ['other', 11]] as [string, number][], stack: 'NestJS · Redis · Postgres', q: 'What breaks if I change the login token?', a: 'Every partner integration — they all sign in through it.' },
+  { name: 'a mobile game', bars: [['C#', 80], ['shaders', 12], ['other', 8]] as [string, number][], stack: 'Unity · C#', q: 'Where’s the core logic?', a: 'The GameManager and the physics loop — start there.' },
+]
+function AnalyzerDemo() {
+  const [sel, setSel] = useState<number | null>(null)
+  const r = sel != null ? REPOS[sel] : null
+  return (
+    <div className="demo">
+      <div className="demo-head">
+        <span className="demo-title">paste a codebase · ask in plain english</span>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {REPOS.map((rp, i) => <button key={i} className={`demo-btn ${sel === i ? 'sel' : ''}`} onClick={() => setSel(i)}>{rp.name}</button>)}
         </div>
       </div>
-    </nav>
+      {r ? (
+        <div className="anz">
+          <div className="anz-card">
+            <div className="anz-k">detected instantly (no AI needed)</div>
+            <div className="anz-stack">{r.stack}</div>
+            <div className="anz-bars">{r.bars.map(([l, v]) => (<div key={l} className="anz-bar"><span>{l}</span><i style={{ width: `${v}%` }} /><b>{v}%</b></div>))}</div>
+          </div>
+          <div className="anz-qa"><div className="anz-q">Q: {r.q}</div><div className="anz-a">A: {r.a}</div></div>
+        </div>
+      ) : <p className="demo-note">Pick a codebase — it detects what it’s built with instantly, then answers questions in plain English.</p>}
+    </div>
   )
 }
 
-function Section({ id, children }: { id?: string; children: ReactNode }) {
+/* ------------------------------------------------------------ risk demo (car dashboard) */
+const LOANS = [
+  { name: 'A. Kumar', days: 12 },
+  { name: 'R. Iyer', days: 96 },
+  { name: 'S. Nair', days: 45 },
+  { name: 'M. Das', days: 130 },
+  { name: 'P. Roy', days: 5 },
+]
+function loanAction(days: number): { label: string; lvl: string } {
+  if (days >= 120) return { label: 'Initiate repossession', lvl: 'stop' }
+  if (days >= 90) return { label: 'Field visit', lvl: 'stop' }
+  if (days >= 30) return { label: 'Escalate — warning call', lvl: 'warn' }
+  return { label: 'Friendly reminder', lvl: 'ok' }
+}
+function RiskDemo() {
+  const [sorted, setSorted] = useState(false)
+  const rows = sorted ? [...LOANS].sort((a, b) => b.days - a.days) : LOANS
   return (
-    <section id={id} className="section">
-      <div className="wrap reveal">{children}</div>
-    </section>
+    <div className="demo">
+      <div className="demo-head">
+        <span className="demo-title">overdue car loans · who to chase first</span>
+        <button className="demo-btn" onClick={() => setSorted((v) => !v)}>{sorted ? 'reset order' : 'prioritise ▸'}</button>
+      </div>
+      <div className="risk">
+        {rows.map((l) => {
+          const a = loanAction(l.days)
+          return (
+            <div key={l.name} className={`risk-row ${a.lvl}`}>
+              <span className="rk-name">{l.name}</span>
+              <span className="rk-days">{l.days}d overdue</span>
+              <span className="rk-act">{a.label}</span>
+            </div>
+          )
+        })}
+      </div>
+      <p className="demo-note">{sorted ? 'Sorted by risk, each with its exact next step — the collector knows who to call today.' : 'A messy list of overdue accounts. Hit “prioritise” to turn it into a plan.'}</p>
+    </div>
   )
 }
 
+/* ------------------------------------------------------------ ledger record */
+function Record({ p, idx }: { p: Project; idx: number }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <article className="record">
+      <div className="record-main">
+        <div className="record-head">
+          <span className="rec-id">PRJ-{String(idx + 1).padStart(2, '0')}</span>
+          <h3 className="rec-name">{p.name}</h3>
+          <span className={`rec-status ${p.runKind === 'live' ? 'live' : ''}`}><i />{p.run}</span>
+        </div>
+        <p className="rec-one">{p.one}</p>
+        <p className="rec-why"><span className="lbl">{p.whyLabel}</span>{p.why}</p>
+        {p.fix && (
+          <p className="rec-fix">
+            <span className="lbl">{p.fix.label}</span>{p.fix.text}{' '}
+            <a className="fixlink" href={p.fix.href} target="_blank" rel="noopener">{p.fix.hrefLabel} ↗</a>
+          </p>
+        )}
+        {p.demo && (
+          <div className="run-row">
+            <button className="run-btn" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+              {open ? '▾ hide interactive demo' : '▸ run interactive demo'}
+            </button>
+          </div>
+        )}
+      </div>
+      {open && p.demo === 'concurrency' && <ConcurrencyDemo />}
+      {open && p.demo === 'guards' && <GuardDemo />}
+      {open && p.demo === 'pipeline' && <PipelineDemo />}
+      {open && p.demo === 'review' && <ReviewDemo />}
+      {open && p.demo === 'analyzer' && <AnalyzerDemo />}
+      {open && p.demo === 'risk' && <RiskDemo />}
+      <div className="record-foot">
+        <div className="stack">{p.stack.map((s) => <i key={s}>{s}</i>)}</div>
+        <a className="plink" href={p.href} target="_blank" rel="noopener">{I.github} source ↗</a>
+      </div>
+    </article>
+  )
+}
+
+/* ------------------------------------------------------------ signature */
 function Signature() {
   const ref = useRef<HTMLDivElement>(null)
   const [drawn, setDrawn] = useState(false)
@@ -389,14 +564,12 @@ function Signature() {
   )
 }
 
-/* Count-up: every number in the string animates from 0 to its value when scrolled
-   into view — and back down when scrolled out (until the bottom-of-page lock). */
+/* ------------------------------------------------------------ count-up */
 function Stat({ value }: { value: string }) {
   const ref = useRef<HTMLSpanElement>(null)
   const [t, setT] = useState(0)
   const tRef = useRef(0)
   const rafRef = useRef(0)
-
   const parts = useMemo(() => {
     const out: { text?: string; target?: number; decimals?: number; comma?: boolean }[] = []
     const re = /-?\d[\d,]*(?:\.\d+)?/g
@@ -411,7 +584,6 @@ function Stat({ value }: { value: string }) {
     if (last < value.length) out.push({ text: value.slice(last) })
     return out
   }, [value])
-
   useEffect(() => {
     const set = (v: number) => { tRef.current = v; setT(v) }
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { set(1); return }
@@ -424,8 +596,7 @@ function Stat({ value }: { value: string }) {
       const t0 = performance.now()
       const step = (now: number) => {
         const p = Math.min(1, (now - t0) / 1100)
-        const eased = 1 - Math.pow(1 - p, 3)
-        set(from + (target - from) * eased)
+        set(from + (target - from) * (1 - Math.pow(1 - p, 3)))
         if (p < 1) rafRef.current = requestAnimationFrame(step)
       }
       rafRef.current = requestAnimationFrame(step)
@@ -440,145 +611,314 @@ function Stat({ value }: { value: string }) {
     io.observe(el)
     return () => { io.disconnect(); cancelAnimationFrame(rafRef.current) }
   }, [])
-
   return (
     <span ref={ref}>
       {parts.map((p, i) => {
         if (p.text !== undefined) return <span key={i}>{p.text}</span>
         const cur = (p.target ?? 0) * t
-        const shown = p.decimals
-          ? cur.toFixed(p.decimals)
-          : p.comma
-            ? Math.round(cur).toLocaleString('en-US')
-            : String(Math.round(cur))
+        const shown = p.decimals ? cur.toFixed(p.decimals) : p.comma ? Math.round(cur).toLocaleString('en-US') : String(Math.round(cur))
         return <span key={i}>{shown}</span>
       })}
     </span>
   )
 }
 
+/* ------------------------------------------------------------------ app */
+/* ------------------------------------------------------------ enhancements */
+const NAV = ['work', 'projects', 'approach', 'stack', 'about', 'contact'] as const
+const SPARKS: number[][] = [
+  [3, 5, 8, 12, 18, 25],
+  [10, 9, 8.5, 7.6, 6.6, 6],
+  [2, 5, 7, 10, 13, 15],
+  [18, 15, 12, 9, 7, 6],
+  [20, 15, 10, 6, 3.5, 2],
+  [10, 8.6, 7, 5.6, 4.6, 4],
+]
+
+function goTo(id: string) {
+  const el = document.getElementById(id)
+  if (el) el.scrollIntoView({ behavior: 'smooth' })
+  else window.location.hash = id
+}
+function downloadCV() {
+  const a = document.createElement('a')
+  a.href = '/resume.pdf'
+  a.download = 'Santhosh-Rubenraj-Solomon-CV.pdf'
+  document.body.appendChild(a); a.click(); a.remove()
+}
+
+function useActiveSection(ids: readonly string[]) {
+  const [active, setActive] = useState('')
+  useEffect(() => {
+    const onScroll = () => {
+      const line = window.scrollY + window.innerHeight * 0.35
+      let cur = ''
+      for (const id of ids) {
+        const el = document.getElementById(id)
+        if (el && el.offsetTop <= line) cur = id
+      }
+      setActive(cur)
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll) }
+  }, [ids])
+  return active
+}
+
+function Spark({ data }: { data: number[] }) {
+  const ref = useRef<SVGSVGElement>(null)
+  const [drawn, setDrawn] = useState(false)
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setDrawn(true); return }
+    const el = ref.current
+    if (!el || !('IntersectionObserver' in window)) { setDrawn(true); return }
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => {
+        if (e.isIntersecting) setDrawn(true)
+        else if (!scrollState.reachedBottom) setDrawn(false)
+      }),
+      { threshold: 0.6 },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+  const w = 60, h = 20, pad = 2.5
+  const min = Math.min(...data), max = Math.max(...data)
+  const nx = (i: number) => pad + (i / (data.length - 1)) * (w - 2 * pad)
+  const ny = (v: number) => pad + (1 - (v - min) / ((max - min) || 1)) * (h - 2 * pad)
+  const line = 'M' + data.map((v, i) => `${nx(i).toFixed(1)},${ny(v).toFixed(1)}`).join(' L')
+  const area = `${line} L${nx(data.length - 1).toFixed(1)},${h - pad} L${nx(0).toFixed(1)},${h - pad} Z`
+  return (
+    <svg ref={ref} className={`spark ${drawn ? 'drawn' : ''}`} viewBox={`0 0 ${w} ${h}`} width={w} height={h} aria-hidden="true">
+      <path className="spark-area" d={area} />
+      <path className="spark-line" d={line} pathLength={1} />
+      <circle className="spark-dot" cx={nx(data.length - 1)} cy={ny(data[data.length - 1])} r="2" />
+    </svg>
+  )
+}
+
+const CMDS: { name: string; desc: string }[] = [
+  { name: 'help', desc: 'list commands' },
+  { name: 'work', desc: 'jump to selected work' },
+  { name: 'projects', desc: 'jump to projects' },
+  { name: 'approach', desc: 'jump to approach' },
+  { name: 'stack', desc: 'jump to the stack' },
+  { name: 'about', desc: 'jump to background' },
+  { name: 'contact', desc: 'jump to contact' },
+  { name: 'cv', desc: 'download résumé (pdf)' },
+  { name: 'github', desc: 'open github ↗' },
+  { name: 'linkedin', desc: 'open linkedin ↗' },
+  { name: 'whoami', desc: 'who is this' },
+  { name: 'reboot', desc: 'replay boot sequence' },
+  { name: 'clear', desc: 'clear the screen' },
+]
+
+function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [input, setInput] = useState('')
+  const [sel, setSel] = useState(0)
+  const [log, setLog] = useState<ReactNode[]>([])
+  const inputRef = useRef<HTMLInputElement>(null)
+  const q = input.trim().toLowerCase()
+  const suggestions = q ? CMDS.filter((c) => c.name.startsWith(q)) : CMDS
+
+  useEffect(() => { if (open) { setSel(0); setTimeout(() => inputRef.current?.focus(), 30) } }, [open])
+  useEffect(() => { setSel(0) }, [input])
+  useEffect(() => {
+    if (!open) return
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [open])
+
+  if (!open) return null
+
+  const print = (node: ReactNode) => setLog((l) => [...l, <div className="pl-out" key={'o' + l.length}>{node}</div>])
+  const exec = (raw: string) => {
+    const cmd = raw.trim().toLowerCase()
+    if (!cmd) return
+    setLog((l) => [...l, <div className="pl-cmd" key={'c' + l.length}><span className="pl-caret">›</span> {cmd}</div>])
+    switch (cmd) {
+      case 'help':
+        print(<div className="pl-help">{CMDS.filter((c) => c.name !== 'help').map((c) => (<div key={c.name}><b>{c.name}</b><span>{c.desc}</span></div>))}</div>); break
+      case 'work': case 'projects': case 'approach': case 'stack': case 'about': case 'contact':
+        onClose(); goTo(cmd); break
+      case 'cv': case 'resume':
+        downloadCV(); print('↓ downloading Santhosh-Rubenraj-Solomon-CV.pdf'); break
+      case 'github': window.open(PROFILE, '_blank', 'noopener'); print('↗ opening github…'); break
+      case 'linkedin': window.open(LINKEDIN, '_blank', 'noopener'); print('↗ opening linkedin…'); break
+      case 'whoami': print('Santhosh Rubenraj Solomon — product-minded backend engineer · payments @ Surfboard · Chennai. Backend by title; I know the infra end to end.'); break
+      case 'reboot': try { sessionStorage.removeItem('booted') } catch { /* */ } window.location.reload(); break
+      case 'clear': setLog([]); break
+      default: print(<><span className="pl-err">command not found: {cmd}</span> — type <b>help</b></>)
+    }
+  }
+  const onKeyDown = (e: ReactKeyboardEvent) => {
+    if (e.key === 'Enter') {
+      const exact = CMDS.find((c) => c.name === q)
+      exec(exact ? exact.name : (suggestions[sel]?.name ?? input)); setInput('')
+    } else if (e.key === 'ArrowDown') { e.preventDefault(); setSel((i) => Math.min(i + 1, suggestions.length - 1)) }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setSel((i) => Math.max(i - 1, 0)) }
+    else if (e.key === 'Tab') { e.preventDefault(); if (suggestions[sel]) setInput(suggestions[sel].name) }
+    else if (e.key === 'Escape') { onClose() }
+  }
+  return (
+    <div className="pl-overlay" onClick={onClose}>
+      <div className="pl" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Command palette">
+        <div className="pl-bar"><span className="lamp g" /><span className="lamp" /><span className="lamp" /><span>SRS // command — try “help”, esc to close</span></div>
+        {log.length > 0 && <div className="pl-log">{log}</div>}
+        <div className="pl-input">
+          <span className="pl-caret">›</span>
+          <input ref={inputRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={onKeyDown} placeholder="type a command…" spellCheck={false} autoComplete="off" aria-label="command" />
+        </div>
+        <div className="pl-sug">
+          {suggestions.map((c, i) => (
+            <button key={c.name} className={`pl-sug-item ${i === sel ? 'on' : ''}`} onMouseEnter={() => setSel(i)} onClick={() => { exec(c.name); setInput('') }}>
+              <b>{c.name}</b><span>{c.desc}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const BOOT_LINES: ReactNode[] = [
+  <>› initializing <b>payments-terminal</b>…</>,
+  <>› mounting ledger @ shared-postgres … <span className="ok">ok</span></>,
+  <>› redis idempotency-lock … <span className="ok">armed</span></>,
+  <>› loading <b>santhosh.profile</b> … <span className="ok">ok</span></>,
+  <>› ready.</>,
+]
+function Boot() {
+  const gated = (() => { try { return sessionStorage.getItem('booted') === '1' } catch { return true } })()
+  const reduce = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const skip = gated || reduce
+  const [shown, setShown] = useState(skip ? BOOT_LINES.length : 0)
+  const [done, setDone] = useState(skip)
+  useEffect(() => {
+    if (skip) return
+    let i = 0
+    const finish = () => { try { sessionStorage.setItem('booted', '1') } catch { /* */ } setDone(true) }
+    const id = window.setInterval(() => {
+      i += 1; setShown(i)
+      if (i >= BOOT_LINES.length) { clearInterval(id); window.setTimeout(finish, 480) }
+    }, 260)
+    const onSkip = () => { clearInterval(id); finish() }
+    window.addEventListener('keydown', onSkip)
+    window.addEventListener('pointerdown', onSkip)
+    return () => { clearInterval(id); window.removeEventListener('keydown', onSkip); window.removeEventListener('pointerdown', onSkip) }
+  }, [])
+  if (skip) return null
+  return (
+    <div className={`boot ${done ? 'gone' : ''}`} aria-hidden="true">
+      <div className="boot-inner">
+        {BOOT_LINES.slice(0, shown).map((l, i) => <div className="boot-line" key={i}>{l}</div>)}
+        <span className="cursor" />
+      </div>
+    </div>
+  )
+}
+
 export default function App() {
-  const { theme, toggle } = useTheme()
   useScrollBottomLatch()
   useReveal()
+  const [palette, setPalette] = useState(false)
+  const active = useActiveSection(NAV)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setPalette((o) => !o) }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
   return (
     <>
+      <Boot />
       <a id="top" />
-      <Nav theme={theme} toggle={toggle} />
+      <StatusBar active={active} onOpenPalette={() => setPalette(true)} />
 
       {/* HERO */}
-      <header className="section hero" style={{ borderTop: 'none' }}>
+      <header className="panel hero" style={{ borderTop: 'none' }}>
         <div className="wrap">
-          <p className="hero-kicker">Santhosh Rubenraj Solomon · perspective &amp; practice</p>
-          <h1>Everything real was once imagined - until someone made it true.</h1>
-          <div className="hero-body">
+          <p className="hero-kicker">Santhosh Rubenraj Solomon <b>// backend engineer · payments</b></p>
+          <div className="hero-grid">
             <div>
-              <p>
-                I mostly build autonomous agents and distributed backends, and I build them the same way. The action that
-                could do real damage — <span className="ink">submit the application, reprocess the payment, write to the repo</span> —
-                is made structurally unreachable first, and only then, deliberately, wired up. A config flag you can flip is not a
-                safety mechanism.
+              <h1>Everything real was once imagined - until someone made it true.</h1>
+              <p className="hero-thesis">
+                Agents and distributed backends, built the same way: the action that could do real damage —{' '}
+                <span className="ink">submit the application, reprocess the payment, write to the repo</span> — is made structurally
+                unreachable first, then deliberately wired. A config flag you can flip is not a safety mechanism.
               </p>
               <p className="hero-bridge">
-                Four years shipping payments infrastructure at Surfboard — and I spend nearly as much time in the PRD as in the codebase.
+                # backend engineer, four years in a Nordic payments stack — close enough to the infrastructure to know where it breaks. as much PRD as code.
               </p>
               <div className="hero-cta">
-                <a className="btn btn-primary" href="#work">See the work {I.arrow}</a>
-                <a className="btn btn-ghost" href="/resume.pdf" target="_blank" rel="noopener">Résumé {I.down}</a>
-                <a className="btn btn-ghost" href={PROFILE} target="_blank" rel="noopener">GitHub {I.github}</a>
+                <a className="btn btn-primary" href="#work">see the work {I.arrow}</a>
+                <a className="btn" href="/resume.pdf" download="Santhosh-Rubenraj-Solomon-CV.pdf">download cv {I.down}</a>
+                <a className="btn" href={PROFILE} target="_blank" rel="noopener">github {I.github}</a>
               </div>
             </div>
-            <aside className="hero-aside">
-              <StatePill />
-              <div className="chips">
-                <span className="chip"><span className="k">4+</span> yrs · fintech</span>
-                <span className="chip"><span className="k">2.5k+</span> terminals</span>
-                <span className="chip"><span className="k">~87</span> services</span>
-                <span className="chip">CAPM · product</span>
+            <aside className="readout">
+              <div className="readout-bar"><span className="lamp g" /><span className="lamp" /><span className="lamp" /><span>system: nominal</span></div>
+              <div className="readout-rows">
+                {READOUT.map((r) => (
+                  <div className="r" key={r.k}><span className="k">{r.k}</span><span className="v">{r.v}</span></div>
+                ))}
               </div>
+              <div className="readout-foot"><StatePill /></div>
             </aside>
           </div>
         </div>
       </header>
 
       {/* WORK */}
-      <Section id="work">
-        <p className="eyebrow">At Surfboard Payments</p>
-        <h2 className="h2">Things I built that are load-bearing.</h2>
-        <p className="lead">Not a task list — the systems the business runs on, and what changed because they exist.</p>
-        <div className="work-head" style={{ marginTop: 30 }}>
-          <span className="work-role"><b>Software Engineer</b> · May 2022 — Present · Chennai, India</span>
-        </div>
-        <div className="work-grid">
-          {SURFBOARD.map((w) => (
-            <article className="wcard" key={w.title}>
-              <div className="metric"><Stat value={w.metric} /> <span className="u" style={{ fontSize: 13 }}>{w.unit}</span></div>
-              <h3>{w.title}</h3>
-              <p>{w.desc}</p>
-              <span className="tag">{w.tag}</span>
-            </article>
+      <Panel id="work" cmd={<>query <b>--metrics</b> --scope=surfboard</>} tag="load-bearing">
+        <h2 className="p-title">Things I built that hold weight.</h2>
+        <p className="p-lead">Not a task list — the systems the business runs on, and what changed because they exist.</p>
+        <p className="work-role"><b>Software Engineer</b> · May 2022 — Present · Chennai, India</p>
+        <div className="tiles">
+          {SURFBOARD.map((w, i) => (
+            <div className="tile" key={w.title}>
+              <Spark data={SPARKS[i]} />
+              <div className="tile-metric"><Stat value={w.metric} /></div>
+              <div className="tile-unit">{w.unit}</div>
+              <div className="tile-title">{w.title}</div>
+              <div className="tile-desc">{w.desc}</div>
+              <div className="tile-tag">{w.tag}</div>
+            </div>
           ))}
         </div>
-      </Section>
+      </Panel>
 
       {/* PROJECTS */}
-      <Section id="projects">
-        <p className="eyebrow">Side work · real code</p>
-        <h2 className="h2">Agents and systems I built to think through a problem.</h2>
-        <p className="lead">Each one runs. Each leads with the decision that was actually interesting — and, where it matters, an honest note on what it doesn&rsquo;t do yet.</p>
-        <div className="proj-list" style={{ marginTop: 34 }}>
-          {PROJECTS.map((p) => (
-            <article className="pcard" key={p.name}>
-              <div className="pcard-main">
-                <div className="pcard-top">
-                  <div>
-                    <h3>{p.name}</h3>
-                    <p className="oneliner">{p.one}</p>
-                  </div>
-                  <span className={`runbadge ${p.runKind === 'demo' ? 'demo' : ''}`}><span className="led" />{p.run}</span>
-                </div>
-                <p className="why"><span className="lbl">{p.whyLabel}</span>{p.why}</p>
-                {p.fix && (
-                  <p className="fix">
-                    <span className="lbl">{p.fix.label}</span>{p.fix.text}{' '}
-                    <a className="fixlink" href={p.fix.href} target="_blank" rel="noopener">{p.fix.hrefLabel} ↗</a>
-                  </p>
-                )}
-              </div>
-              {p.demo === 'concurrency' && <ConcurrencyDemo />}
-              {p.demo === 'guards' && <GuardDemo />}
-              <div className="pcard-foot">
-                <div className="stack">{p.stack.map((s) => <i key={s}>{s}</i>)}</div>
-                <div className="plinks">
-                  <a className="plink" href={p.href} target="_blank" rel="noopener">{I.github} source</a>
-                </div>
-              </div>
-            </article>
-          ))}
+      <Panel id="projects" cmd={<>ls <b>./projects</b> --with-demos</>} tag={`${PROJECTS.length} records`}>
+        <h2 className="p-title">Agents and systems I built to think through a problem.</h2>
+        <p className="p-lead">Each runs. Each leads with the interesting decision — plus an honest note on what it doesn’t do yet. Hit <span className="mono" style={{ color: 'var(--gold)' }}>▸ run</span> to try the live ones.</p>
+        <div className="records" style={{ marginTop: 30 }}>
+          {PROJECTS.map((p, i) => <Record key={p.name} p={p} idx={i} />)}
         </div>
-      </Section>
+      </Panel>
 
       {/* APPROACH */}
-      <Section id="approach">
-        <p className="eyebrow">How I work</p>
-        <h2 className="h2">A product person who ships the backend.</h2>
-        <p className="lead">The engineering is the proof. The product thinking is why it&rsquo;s the right thing to build.</p>
-        <div className="appr-grid" style={{ marginTop: 34 }}>
+      <Panel id="approach" cmd={<>cat <b>approach.md</b></>} tag="how i work">
+        <h2 className="p-title">A product person who ships the backend.</h2>
+        <p className="p-lead">The engineering is the proof. The product thinking is why it’s the right thing to build.</p>
+        <div className="appr-list" style={{ marginTop: 30 }}>
           {APPROACH.map((a) => (
             <article className="appr" key={a.n}>
-              <span className="n mono">{a.n}</span>
+              <span className="n">{a.n}</span>
               <h3>{a.title}</h3>
               <p>{a.desc}</p>
             </article>
           ))}
         </div>
-      </Section>
+      </Panel>
 
       {/* SKILLS */}
-      <Section id="skills">
-        <p className="eyebrow">Stack</p>
-        <h2 className="h2">What I reach for.</h2>
-        <div className="skills-grid" style={{ marginTop: 26 }}>
+      <Panel id="stack" cmd={<>stack <b>--list</b></>} tag="toolbox">
+        <h2 className="p-title">What I reach for.</h2>
+        <div className="skills" style={{ marginTop: 24 }}>
           {SKILLS.map((s) => (
             <div className="skillrow" key={s.cat}>
               <span className="cat">{s.cat}</span>
@@ -586,52 +926,53 @@ export default function App() {
             </div>
           ))}
         </div>
-      </Section>
+      </Panel>
 
       {/* ABOUT */}
-      <Section id="about">
-        <p className="eyebrow">Background</p>
+      <Panel id="about" cmd={<>whoami <b>--verbose</b></>} tag="background">
         <div className="about-grid">
           <div className="about">
-            <h2 className="h2">Chennai, payments, and a taste for the failure mode.</h2>
+            <h2 className="p-title">From Chennai, working in payments, hooked on how things break.</h2>
             <p>
-              I&rsquo;m Santhosh — a backend engineer who landed in payments and stayed because the failure modes are the
-              interesting part. I trained as an <span className="ink">electronics &amp; instrumentation engineer</span>, started as a
-              full-stack intern building a load-balanced library system, and for the last four years have built the infrastructure a
-              Nordic payments company runs on.
+              I’m Santhosh. I trained in <span className="ink">electronics &amp; instrumentation</span>, started out as a
+              full-stack intern, and somewhere along the way landed in payments and stayed. For four years I’ve built and kept
+              running the backend a Nordic payments company depends on — long enough to know the whole stack, not just my corner of it.
             </p>
             <p>
-              Along the way I picked up the other half of the job — writing the PRDs, mapping the user flows, arguing the API design
-              with product stakeholders. I like being the person who can both spec the thing and build it.
+              Along the way I picked up the other half of the job — writing PRDs, mapping user flows, arguing API design with
+              product. I’d rather be the person who can spec a thing and build it than hand it off halfway.
             </p>
-            <Signature />
+            <div className="sign-block">
+              <p className="sign-label">// authorized_by</p>
+              <Signature />
+            </div>
           </div>
           <div className="factlist">
             {FACTS.map((f) => (<div key={f.k}><span>{f.k}</span><b>{f.v}</b></div>))}
           </div>
         </div>
-      </Section>
+      </Panel>
 
       {/* CONTACT */}
-      <Section id="contact">
+      <Panel id="contact" cmd={<>./contact <b>--open</b></>} tag="reach out">
         <div className="contact">
-          <p className="eyebrow">Contact</p>
-          <h2>Building something that has to be correct? Let&rsquo;s talk.</h2>
-          <div className="links">
-            <a className="clink" href={`mailto:${EMAIL}`}>{I.mail}<span className="mono">{EMAIL}</span></a>
-            <a className="clink" href={LINKEDIN} target="_blank" rel="noopener">{I.linkedin} LinkedIn</a>
-            <a className="clink" href={PROFILE} target="_blank" rel="noopener">{I.github} GitHub</a>
-            <a className="clink" href="/resume.pdf" target="_blank" rel="noopener">{I.down} Résumé</a>
+          <h2>Building something that has to be correct? Let’s talk.</h2>
+          <div className="clinks">
+            <a className="clink" href={`mailto:${EMAIL}`}><span className="ck">email</span>{EMAIL}<span className="arrow">↗</span></a>
+            <a className="clink" href={LINKEDIN} target="_blank" rel="noopener"><span className="ck">linkedin</span>/santhosh-ruben-raj-solomon<span className="arrow">↗</span></a>
+            <a className="clink" href={PROFILE} target="_blank" rel="noopener"><span className="ck">github</span>/Santhosh-Rubenraj-Solomon<span className="arrow">↗</span></a>
+            <a className="clink" href="/resume.pdf" download="Santhosh-Rubenraj-Solomon-CV.pdf"><span className="ck">résumé</span>Santhosh-Rubenraj-Solomon-CV.pdf<span className="arrow">↓</span></a>
           </div>
         </div>
-      </Section>
+      </Panel>
 
       <footer className="footer">
         <div className="wrap footer-inner">
-          <span>© 2026 Santhosh Rubenraj Solomon</span>
-          <span>Built in React · designed to be honest, not impressive</span>
+          <span>© 2026 santhosh rubenraj solomon</span>
+          <span>built as a terminal, not a template · react + vite</span>
         </div>
       </footer>
+      <CommandPalette open={palette} onClose={() => setPalette(false)} />
     </>
   )
 }
