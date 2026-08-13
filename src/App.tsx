@@ -38,11 +38,12 @@ const SURFBOARD: Work[] = [
   { metric: '−40%', unit: 'incidents', title: 'Payment methods, V2', desc: 'Ground-up NestJS rewrite of the core payment-methods service — the path every transaction routes through.', tag: 'NestJS · core service' },
   { metric: '15+', unit: 'partner integrations', title: 'Developer & partner APIs', desc: 'Service-account APIs + Developer Portal for external integrators — JWT across isolated envs, versioned contracts. Zero cross-env security incidents.', tag: 'JWT · API contracts' },
   { metric: '1.8s → 0.6s', unit: 'p95 latency', title: '~87 services, made to talk less', desc: 'Consolidated shared logic across the estate; async messaging + caching cut redundant calls and peak-load latency.', tag: 'event-driven · caching' },
-  { metric: '−20 hrs', unit: 'per week', title: 'Logistics & shipping migration', desc: 'Re-architected the shipping integration with secure async webhooks — delivery-status lag: hours → under a minute.', tag: 'webhooks · logistics' },
+  { metric: '1 → 5', unit: 'return markets', title: 'Carrier migration, Fraktjakt → nShift', desc: 'Owned the returns platform’s move to nShift behind a provider-agnostic abstraction — both carriers live, swapped by env flag, so a rollback is config, not a redeploy. Country-aware routing opened returns from Sweden alone to five countries.', tag: 'carriers · returns' },
+  { metric: '−20 hrs', unit: 'per week', title: 'Logistics & shipping automation', desc: 'Async webhooks for real-time delivery tracking — status lag: hours → under a minute. Return approval now books the shipment, pulls the carrier label inline and emails it to the merchant.', tag: 'webhooks · logistics' },
   { metric: '−50%', unit: 'time-to-ack', title: 'Incident ticketing + ops agents', desc: 'Replaced ad-hoc Slack alerts with a raise → monitor → resolve flow + ops agents. ~15 hrs/week back to the team.', tag: 'AI agents · ops' },
 ]
 
-type Demo = 'concurrency' | 'guards' | 'pipeline' | 'review' | 'analyzer' | 'risk' | null
+type Demo = 'concurrency' | 'review' | 'analyzer' | 'risk' | null
 type Project = {
   name: string; one: string; whyLabel: string; why: string
   stack: string[]; href: string; run: string; runKind: 'live' | 'demo'; demo: Demo
@@ -62,22 +63,6 @@ const PROJECTS: Project[] = [
       href: 'https://github.com/Santhosh-Rubenraj-Solomon/AI_agents/commit/d2dbd6d4d44d0525ffc172bad215740d5b278dbb',
       hrefLabel: 'the commit that closed it',
     },
-  },
-  {
-    name: 'Job-Hunt Agent',
-    one: 'A robot that searches job boards, tailors your CV to each posting, and lines up applications — but is built so it can never actually hit “Submit” without a human saying yes.',
-    whyLabel: 'The clever bit',
-    why: 'It’s blocked from auto-applying in four separate ways, each enough on its own. Flip one switch by accident and three other locks still hold. Safety you can’t disable by mistake.',
-    stack: ['Python', 'LangGraph', 'Gemini', 'Playwright', 'FastAPI'],
-    href: `${REPO}/AI-job-hunt`, run: 'runs · submission inert by design', runKind: 'demo', demo: 'guards',
-  },
-  {
-    name: 'ECR Dev Factory',
-    one: 'Ask for a coding task in plain English in your team chat, and it does the grunt work — plans it, writes the code, checks its own work, and prepares it for a teammate to review. Nothing ships until a human approves.',
-    whyLabel: 'The clever bit',
-    why: 'It works only inside a safe sandbox it can’t escape, and it pauses for your “go-ahead” before writing anything. An assistant that speeds you up without ever going rogue.',
-    stack: ['TypeScript', 'Slack Bolt', 'Claude CLI', 'SQLite', 'GitLab'],
-    href: `${REPO}/AI-REPO-agent`, run: 'typechecks clean · internal WIP', runKind: 'demo', demo: 'pipeline',
   },
   {
     name: 'AI Diff Reviewer',
@@ -304,90 +289,6 @@ function ConcurrencyDemo() {
   )
 }
 
-/* ------------------------------------------------------------ guard demo */
-const GUARDS = [
-  { name: 'using real job sites (not a test)', sub: 'lock 1' },
-  { name: 'auto-apply turned on', sub: 'lock 2' },
-  { name: 'you typed “APPROVE”', sub: 'lock 3' },
-  { name: 'the “Submit” button is connected', sub: 'lock 4' },
-]
-function GuardDemo() {
-  const [on, setOn] = useState<boolean[]>([false, false, false, false])
-  const armed = on.every(Boolean)
-  const [note, setNote] = useState('')
-  return (
-    <div className="demo">
-      <div className="demo-head">
-        <span className="demo-title">four safety locks · all must open before it can apply</span>
-        <span className="runbadge"><span className="led" />any one alone stops it</span>
-      </div>
-      <div className="guards">
-        {GUARDS.map((g, i) => (
-          <div key={i} className={`guardrow ${on[i] ? 'on' : ''}`} role="checkbox" aria-checked={on[i]} tabIndex={0}
-            onClick={() => setOn((p) => p.map((v, j) => (j === i ? !v : v)))}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOn((p) => p.map((v, j) => (j === i ? !v : v))) } }}>
-            <span className="box">{on[i] ? I.check : null}</span>
-            <span className="gname">{g.name}</span>
-            <span className="gsub">{g.sub}</span>
-          </div>
-        ))}
-      </div>
-      <div className="submit-zone">
-        <button className={`submit-btn ${armed ? 'armed' : ''}`} disabled={!armed}
-          onClick={() => setNote('In the real code, the last lock is left disconnected — so it can never actually apply on its own.')}>
-          {armed ? 'Apply to job' : 'Apply — blocked'}
-        </button>
-        <span className="demo-note" style={{ margin: 0 }}>
-          {note || (armed ? 'All four locks open — only now could it apply.' : 'Open one lock and it’s still blocked three other ways.')}
-        </span>
-      </div>
-    </div>
-  )
-}
-
-/* ------------------------------------------------------------ pipeline demo (ECR) */
-const PIPE = ['Understand the task', 'Wait for your approval', 'Write the code (safe sandbox)', 'Check its own work', 'Ready for review']
-function PipelineDemo() {
-  const [step, setStep] = useState(-1)
-  const timers = useRef<number[]>([])
-  const clearAll = () => { timers.current.forEach(clearTimeout); timers.current = [] }
-  useEffect(() => () => clearAll(), [])
-  const start = () => { clearAll(); setStep(0); timers.current.push(window.setTimeout(() => setStep(1), 850)) }
-  const approve = () => {
-    setStep(2)
-    timers.current.push(window.setTimeout(() => setStep(3), 850))
-    timers.current.push(window.setTimeout(() => setStep(4), 1700))
-  }
-  const reset = () => { clearAll(); setStep(-1) }
-  return (
-    <div className="demo">
-      <div className="demo-head">
-        <span className="demo-title">plain-english request → reviewed code, with a human gate</span>
-        <button className="demo-btn" onClick={step === -1 ? start : reset}>{step === -1 ? '/ecr “add dark mode” ▸' : 'reset'}</button>
-      </div>
-      <div className="pipe">
-        {PIPE.map((s, i) => {
-          const st = step < 0 ? 'idle' : i < step ? 'done' : i === step ? 'cur' : 'idle'
-          const gate = i === 1
-          return (
-            <div key={i} className={`pipe-step ${st} ${gate ? 'gate' : ''}`}>
-              <span className="ps-dot">{st === 'done' ? I.check : i + 1}</span>
-              <span className="ps-t">{s}</span>
-              {gate && i === step && <button className="ps-approve" onClick={approve}>approve ▸</button>}
-            </div>
-          )
-        })}
-      </div>
-      <p className="demo-note">
-        {step < 0 ? 'Ask for a task in plain English — it does the work but waits for your “go”.'
-          : step === 1 ? 'Paused — nothing gets written until you approve.'
-          : step >= 4 ? 'Done: a ready-to-review change, and no one touched a terminal.'
-          : 'Working…'}
-      </p>
-    </div>
-  )
-}
-
 /* ------------------------------------------------------------ review demo (diff reviewer) */
 const REVIEW = [
   { t: 'This could crash if the list is empty', keep: true },
@@ -519,8 +420,6 @@ function Record({ p, idx }: { p: Project; idx: number }) {
         )}
       </div>
       {open && p.demo === 'concurrency' && <ConcurrencyDemo />}
-      {open && p.demo === 'guards' && <GuardDemo />}
-      {open && p.demo === 'pipeline' && <PipelineDemo />}
       {open && p.demo === 'review' && <ReviewDemo />}
       {open && p.demo === 'analyzer' && <AnalyzerDemo />}
       {open && p.demo === 'risk' && <RiskDemo />}
