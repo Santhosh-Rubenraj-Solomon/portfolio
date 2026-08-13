@@ -525,11 +525,14 @@ function Stat({ value }: { value: string }) {
 /* ------------------------------------------------------------------ app */
 /* ------------------------------------------------------------ enhancements */
 const NAV = ['work', 'projects', 'approach', 'stack', 'about', 'contact'] as const
+/* One row per SURFBOARD entry, in the same order — index-paired in the tile
+   grid. Add a row here whenever you add one there. */
 const SPARKS: number[][] = [
   [3, 5, 8, 12, 18, 25],
   [10, 9, 8.5, 7.6, 6.6, 6],
   [2, 5, 7, 10, 13, 15],
   [18, 15, 12, 9, 7, 6],
+  [1, 1, 2, 3, 4, 5],
   [20, 15, 10, 6, 3.5, 2],
   [10, 8.6, 7, 5.6, 4.6, 4],
 ]
@@ -583,6 +586,11 @@ function Spark({ data }: { data: number[] }) {
     io.observe(el)
     return () => io.disconnect()
   }, [])
+  // Guarded after the hooks so hook order stays constant. A missing or
+  // single-point series must not take the page down with it: Math.min(...
+  // undefined) throws before React mounts and the whole site renders blank.
+  // Losing one sparkline is the correct failure.
+  if (!Array.isArray(data) || data.length < 2) return null
   const w = 60, h = 20, pad = 2.5
   const min = Math.min(...data), max = Math.max(...data)
   const nx = (i: number) => pad + (i / (data.length - 1)) * (w - 2 * pad)
