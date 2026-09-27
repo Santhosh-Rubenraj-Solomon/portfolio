@@ -37,9 +37,9 @@ const SURFBOARD: Work[] = [
   { metric: '2,500+', unit: 'POS terminals', title: 'Device management, from scratch', desc: 'Provisions and manages POS terminals across 3 markets — data model, APIs, hardware provisioning, RBAC. Provisioning: 45 min → under 5.', tag: 'APIs · fleet · RBAC' },
   { metric: '−40%', unit: 'incidents', title: 'Payment methods, V2', desc: 'Ground-up NestJS rewrite of the core payment-methods service — the path every transaction routes through.', tag: 'NestJS · core service' },
   { metric: '15+', unit: 'partner integrations', title: 'Developer & partner APIs', desc: 'Service-account APIs + Developer Portal for external integrators — JWT across isolated envs, versioned contracts. Zero cross-env security incidents.', tag: 'JWT · API contracts' },
-  { metric: '1.8s → 0.6s', unit: 'p95 latency', title: '~87 services, made to talk less', desc: 'Consolidated shared logic across the estate; async messaging + caching cut redundant calls and peak-load latency.', tag: 'event-driven · caching' },
+  { metric: '1.2s → 0.8s', unit: 'p95 latency', title: '~87 services, made to talk less', desc: 'Consolidated shared logic across the estate; async messaging + caching cut redundant calls and peak-load latency.', tag: 'event-driven · caching' },
   { metric: '1 → 5', unit: 'return markets', title: 'Carrier migration, Fraktjakt → nShift', desc: 'Owned the returns platform’s move to nShift behind a provider-agnostic abstraction — both carriers live, swapped by env flag, so a rollback is config, not a redeploy. Country-aware routing opened returns from Sweden alone to five countries.', tag: 'carriers · returns' },
-  { metric: '−20 hrs', unit: 'per week', title: 'Logistics & shipping automation', desc: 'Async webhooks for real-time delivery tracking — status lag: hours → under a minute. Return approval now books the shipment, pulls the carrier label inline and emails it to the merchant.', tag: 'webhooks · logistics' },
+  { metric: '04 hrs', unit: 'per week', title: 'Logistics & shipping automation', desc: 'Async webhooks for real-time delivery tracking — status lag: hours → under a minute. Return approval now books the shipment, pulls the carrier label inline and emails it to the merchant.', tag: 'webhooks · logistics' },
   { metric: '−50%', unit: 'time-to-ack', title: 'Incident ticketing + ops agents', desc: 'Replaced ad-hoc Slack alerts with a raise → monitor → resolve flow + ops agents. ~15 hrs/week back to the team.', tag: 'AI agents · ops' },
 ]
 
@@ -470,14 +470,17 @@ function Stat({ value }: { value: string }) {
   const tRef = useRef(0)
   const rafRef = useRef(0)
   const parts = useMemo(() => {
-    const out: { text?: string; target?: number; decimals?: number; comma?: boolean }[] = []
+    const out: { text?: string; target?: number; decimals?: number; comma?: boolean; pad?: number }[] = []
     const re = /-?\d[\d,]*(?:\.\d+)?/g
     let last = 0
     let m: RegExpExecArray | null
     while ((m = re.exec(value)) !== null) {
       if (m.index > last) out.push({ text: value.slice(last, m.index) })
       const raw = m[0]
-      out.push({ target: parseFloat(raw.replace(/,/g, '')), decimals: (raw.split('.')[1] || '').length, comma: raw.includes(',') })
+      // A written "04" must still read "04" once the count-up lands — parseFloat
+      // drops the zero, so keep the original integer width and pad it back.
+      const intDigits = raw.replace('-', '').split('.')[0].length
+      out.push({ target: parseFloat(raw.replace(/,/g, '')), decimals: (raw.split('.')[1] || '').length, comma: raw.includes(','), pad: /^-?0\d/.test(raw) ? intDigits : 0 })
       last = m.index + raw.length
     }
     if (last < value.length) out.push({ text: value.slice(last) })
@@ -515,7 +518,8 @@ function Stat({ value }: { value: string }) {
       {parts.map((p, i) => {
         if (p.text !== undefined) return <span key={i}>{p.text}</span>
         const cur = (p.target ?? 0) * t
-        const shown = p.decimals ? cur.toFixed(p.decimals) : p.comma ? Math.round(cur).toLocaleString('en-US') : String(Math.round(cur))
+        const raw = p.decimals ? cur.toFixed(p.decimals) : p.comma ? Math.round(cur).toLocaleString('en-US') : String(Math.round(cur))
+        const shown = p.pad ? raw.padStart(p.pad, '0') : raw
         return <span key={i}>{shown}</span>
       })}
     </span>
@@ -758,7 +762,7 @@ export default function App() {
                 unreachable first, then deliberately wired. A config flag you can flip is not a safety mechanism.
               </p>
               <p className="hero-bridge">
-                # backend engineer, four years in a Nordic payments stack — close enough to the infrastructure to know where it breaks. as much PRD as code.
+                # Backend Engineer with 4 years in a Nordic payments stack. Close enough to the infrastructure to know where it breaks, and just as involved in product direction as code.
               </p>
               <div className="hero-cta">
                 <a className="btn btn-primary" href="#work">see the work {I.arrow}</a>
@@ -839,15 +843,16 @@ export default function App() {
       <Panel id="about" cmd={<>whoami <b>--verbose</b></>} tag="background">
         <div className="about-grid">
           <div className="about">
-            <h2 className="p-title">From Chennai, working in payments, hooked on how things break.</h2>
+            <h2 className="p-title">Engineering payments from Chennai, with an eye for product and resilience.</h2>
             <p>
-              I’m Santhosh. I trained in <span className="ink">electronics &amp; instrumentation</span>, started out as a
-              full-stack intern, and somewhere along the way landed in payments and stayed. For four years I’ve built and kept
-              running the backend a Nordic payments company depends on — long enough to know the whole stack, not just my corner of it.
+              I’m Santhosh. Coming from an <span className="ink">Electronics &amp; Instrumentation</span> background, I entered
+              tech as a full-stack intern before finding my niche in payments. Over the last four years, I’ve helped keep backend
+              systems running reliably for a Nordic fintech, gaining end-to-end visibility across the stack.
             </p>
             <p>
-              Along the way I picked up the other half of the job — writing PRDs, mapping user flows, arguing API design with
-              product. I’d rather be the person who can spec a thing and build it than hand it off halfway.
+              I bring a strong product instinct to engineering—thinking through user experience, architecture, and feature
+              viability before writing a line of code. I’d rather be the engineer who helps shape the product strategy and builds
+              it ground-up than someone who just receives a spec and hands it off halfway.
             </p>
             <div className="sign-block">
               <p className="sign-label">// authorized_by</p>
