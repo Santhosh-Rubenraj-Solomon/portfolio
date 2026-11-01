@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, type ReactNode, type KeyboardEvent as ReactKeyboardEvent } from 'react'
+import { useState, useEffect, useRef, useMemo, Fragment, type CSSProperties, type ReactNode, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { SIG_D, SIG_DOT_D, SIG_VIEWBOX } from './signature'
 
 /* ------------------------------------------------------------------ links */
@@ -392,11 +392,110 @@ function RiskDemo() {
   )
 }
 
+/* ------------------------------------------------------------ masked words */
+/* Each word slides up from behind its own mask once the parent `.reveal` (or the
+   hero) is in. Real spaces sit between the masks so the text and accessible name
+   read exactly as written. */
+function MaskWords({ text }: { text: string }) {
+  return (
+    <>
+      {text.split(' ').map((w, i, all) => (
+        <Fragment key={i}>
+          <span className="mw"><span style={{ '--w': i } as CSSProperties}>{w}</span></span>
+          {i < all.length - 1 ? ' ' : null}
+        </Fragment>
+      ))}
+    </>
+  )
+}
+
+/* The hero plays its entrance once the boot overlay has finished, so it isn't
+   spent underneath it. Mirrors Boot's own skip rule. */
+function useHeroReady() {
+  const [ready, setReady] = useState(false)
+  useEffect(() => {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const booted = (() => { try { return sessionStorage.getItem('booted') === '1' } catch { return true } })()
+    if (reduce) { setReady(true); return }
+    const t = window.setTimeout(() => setReady(true), booted ? 60 : BOOT_LINES.length * 260 + 520)
+    // a skipped boot (any key or click) should not leave the hero waiting
+    const now = () => setReady(true)
+    window.addEventListener('keydown', now)
+    window.addEventListener('pointerdown', now)
+    return () => { clearTimeout(t); window.removeEventListener('keydown', now); window.removeEventListener('pointerdown', now) }
+  }, [])
+  return ready
+}
+
+/* Slight depth between the hero headline and the readout as the mouse moves.
+   Fine pointers only; writes two CSS variables, the layers do the rest. */
+function useHeroParallax(ref: { current: HTMLElement | null }) {
+  useEffect(() => {
+    const el = ref.current
+    if (!el || !window.matchMedia('(pointer: fine)').matches || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    let raf = 0
+    const onMove = (e: PointerEvent) => {
+      if (window.scrollY > window.innerHeight) return
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => {
+        el.style.setProperty('--px', (e.clientX / window.innerWidth - 0.5).toFixed(3))
+        el.style.setProperty('--py', (e.clientY / window.innerHeight - 0.5).toFixed(3))
+      })
+    }
+    window.addEventListener('pointermove', onMove, { passive: true })
+    return () => { window.removeEventListener('pointermove', onMove); cancelAnimationFrame(raf) }
+  }, [ref])
+}
+
+/* ------------------------------------------------------------ cursor */
+/* A dot that tracks the pointer and a ring that trails it. The ring grows over
+   interactive things and reads "view" over a project record. */
+function Cursor() {
+  const dot = useRef<HTMLDivElement>(null)
+  const ring = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!window.matchMedia('(pointer: fine)').matches || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const root = document.documentElement
+    root.classList.add('has-cursor')
+    let mx = -100, my = -100, rx = mx, ry = my, raf = 0
+    const onMove = (e: PointerEvent) => {
+      mx = e.clientX; my = e.clientY
+      if (dot.current) dot.current.style.transform = `translate3d(${mx}px, ${my}px, 0)`
+      const t = e.target instanceof Element ? e.target : null
+      const interactive = !!t?.closest('a, button, input, textarea, [role="switch"], [role="option"]')
+      ring.current?.classList.toggle('link', interactive)
+      ring.current?.classList.toggle('view', !interactive && !!t?.closest('[data-cursor="view"]'))
+      root.classList.remove('cursor-out')
+    }
+    const onLeave = () => root.classList.add('cursor-out')
+    const loop = () => {
+      rx += (mx - rx) * 0.18; ry += (my - ry) * 0.18
+      if (ring.current) ring.current.style.transform = `translate3d(${rx}px, ${ry}px, 0)`
+      raf = requestAnimationFrame(loop)
+    }
+    raf = requestAnimationFrame(loop)
+    window.addEventListener('pointermove', onMove, { passive: true })
+    document.addEventListener('mouseleave', onLeave)
+    return () => {
+      cancelAnimationFrame(raf)
+      window.removeEventListener('pointermove', onMove)
+      document.removeEventListener('mouseleave', onLeave)
+      root.classList.remove('has-cursor', 'cursor-out')
+    }
+  }, [])
+  return (
+    <>
+      <div ref={dot} className="cur-dot" aria-hidden="true" />
+      <div ref={ring} className="cur-ring" aria-hidden="true"><span>view</span></div>
+    </>
+  )
+}
+
 /* ------------------------------------------------------------ ledger record */
 function Record({ p, idx }: { p: Project; idx: number }) {
   const [open, setOpen] = useState(false)
   return (
-    <article className="record">
+    <article className="record stagger" style={{ '--i': idx } as CSSProperties} data-cursor="view">
       <div className="record-main">
         <div className="record-head">
           <span className="rec-id">PRJ-{String(idx + 1).padStart(2, '0')}</span>
@@ -734,6 +833,9 @@ function Boot() {
 export default function App() {
   useScrollBottomLatch()
   useReveal()
+  const heroReady = useHeroReady()
+  const heroRef = useRef<HTMLElement>(null)
+  useHeroParallax(heroRef)
   const [palette, setPalette] = useState(false)
   const active = useActiveSection(NAV)
   useEffect(() => {
@@ -750,27 +852,27 @@ export default function App() {
       <StatusBar active={active} onOpenPalette={() => setPalette(true)} />
 
       {/* HERO */}
-      <header className="panel hero" style={{ borderTop: 'none' }}>
+      <header ref={heroRef} className={`panel hero ${heroReady ? 'ready' : ''}`} style={{ borderTop: 'none' }}>
         <div className="wrap">
-          <p className="hero-kicker">Santhosh Rubenraj Solomon <b>// backend engineer · payments</b></p>
+          <p className="hero-kicker rise" style={{ '--i': 0 } as CSSProperties}>Santhosh Rubenraj Solomon <b>// backend engineer · payments</b></p>
           <div className="hero-grid">
             <div>
-              <h1>Everything real was once imagined - until someone made it true.</h1>
-              <p className="hero-thesis">
+              <h1><MaskWords text="Everything real was once imagined - until someone made it true." /></h1>
+              <p className="hero-thesis rise" style={{ '--i': 3 } as CSSProperties}>
                 Agents and distributed backends, built the same way: the action that could do real damage —{' '}
                 <span className="ink">submit the application, reprocess the payment, write to the repo</span> — is made structurally
                 unreachable first, then deliberately wired. A config flag you can flip is not a safety mechanism.
               </p>
-              <p className="hero-bridge">
+              <p className="hero-bridge rise" style={{ '--i': 4 } as CSSProperties}>
                 # Backend Engineer with 4 years in a Nordic payments stack. Close enough to the infrastructure to know where it breaks, and just as involved in product direction as code.
               </p>
-              <div className="hero-cta">
+              <div className="hero-cta rise" style={{ '--i': 5 } as CSSProperties}>
                 <a className="btn btn-primary" href="#work">see the work {I.arrow}</a>
                 <a className="btn" href="/resume.pdf" download="Santhosh-Rubenraj-Solomon-CV.pdf">download cv {I.down}</a>
                 <a className="btn" href={PROFILE} target="_blank" rel="noopener">github {I.github}</a>
               </div>
             </div>
-            <aside className="readout">
+            <aside className="readout rise" style={{ '--i': 2 } as CSSProperties}>
               <div className="readout-bar"><span className="lamp g" /><span className="lamp" /><span className="lamp" /><span>system: nominal</span></div>
               <div className="readout-rows">
                 {READOUT.map((r) => (
@@ -785,12 +887,12 @@ export default function App() {
 
       {/* WORK */}
       <Panel id="work" cmd={<>query <b>--metrics</b> --scope=surfboard</>} tag="load-bearing">
-        <h2 className="p-title">Things I built that hold weight.</h2>
+        <h2 className="p-title"><MaskWords text="Things I built that hold weight." /></h2>
         <p className="p-lead">Not a task list — the systems the business runs on, and what changed because they exist.</p>
         <p className="work-role"><b>Software Engineer</b> · May 2022 — Present · Chennai, India</p>
         <div className="tiles">
           {SURFBOARD.map((w, i) => (
-            <div className="tile" key={w.title}>
+            <div className="tile stagger" style={{ '--i': i } as CSSProperties} key={w.title}>
               <Spark data={SPARKS[i]} />
               <div className="tile-metric"><Stat value={w.metric} /></div>
               <div className="tile-unit">{w.unit}</div>
@@ -804,7 +906,7 @@ export default function App() {
 
       {/* PROJECTS */}
       <Panel id="projects" cmd={<>ls <b>./projects</b> --with-demos</>} tag={`${PROJECTS.length} records`}>
-        <h2 className="p-title">Agents and systems I built to think through a problem.</h2>
+        <h2 className="p-title"><MaskWords text="Agents and systems I built to think through a problem." /></h2>
         <p className="p-lead">Each runs. Each leads with the interesting decision — plus an honest note on what it doesn’t do yet. Hit <span className="mono" style={{ color: 'var(--gold)' }}>▸ run</span> to try the live ones.</p>
         <div className="records" style={{ marginTop: 30 }}>
           {PROJECTS.map((p, i) => <Record key={p.name} p={p} idx={i} />)}
@@ -813,11 +915,11 @@ export default function App() {
 
       {/* APPROACH */}
       <Panel id="approach" cmd={<>cat <b>approach.md</b></>} tag="how i work">
-        <h2 className="p-title">A product person who ships the backend.</h2>
+        <h2 className="p-title"><MaskWords text="A product person who ships the backend." /></h2>
         <p className="p-lead">The engineering is the proof. The product thinking is why it’s the right thing to build.</p>
         <div className="appr-list" style={{ marginTop: 30 }}>
-          {APPROACH.map((a) => (
-            <article className="appr" key={a.n}>
+          {APPROACH.map((a, i) => (
+            <article className="appr stagger" style={{ '--i': i } as CSSProperties} key={a.n}>
               <span className="n">{a.n}</span>
               <h3>{a.title}</h3>
               <p>{a.desc}</p>
@@ -828,10 +930,10 @@ export default function App() {
 
       {/* SKILLS */}
       <Panel id="stack" cmd={<>stack <b>--list</b></>} tag="toolbox">
-        <h2 className="p-title">What I reach for.</h2>
+        <h2 className="p-title"><MaskWords text="What I reach for." /></h2>
         <div className="skills" style={{ marginTop: 24 }}>
-          {SKILLS.map((s) => (
-            <div className="skillrow" key={s.cat}>
+          {SKILLS.map((s, i) => (
+            <div className="skillrow stagger" style={{ '--i': i } as CSSProperties} key={s.cat}>
               <span className="cat">{s.cat}</span>
               <span className="vals">{s.vals.map((v) => <span key={v}>{v}</span>)}</span>
             </div>
@@ -843,7 +945,7 @@ export default function App() {
       <Panel id="about" cmd={<>whoami <b>--verbose</b></>} tag="background">
         <div className="about-grid">
           <div className="about">
-            <h2 className="p-title">Engineering payments from Chennai, with an eye for product and resilience.</h2>
+            <h2 className="p-title"><MaskWords text="Engineering payments from Chennai, with an eye for product and resilience." /></h2>
             <p>
               I’m Santhosh. Coming from an <span className="ink">Electronics &amp; Instrumentation</span> background, I entered
               tech as a full-stack intern before finding my niche in payments. Over the last four years, I’ve helped keep backend
@@ -885,6 +987,7 @@ export default function App() {
         </div>
       </footer>
       <CommandPalette open={palette} onClose={() => setPalette(false)} />
+      <Cursor />
     </>
   )
 }
