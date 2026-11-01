@@ -148,13 +148,14 @@ describe('links', () => {
     })
   })
 
-  it('hero CTAs point at #work, the CV and GitHub', () => {
+  it('hero has one CTA to #work; the CV and GitHub sit in the readout', () => {
     render(<App />)
     const cta = within(document.querySelector('.hero-cta') as HTMLElement)
-    expect(cta.getAllByRole('link')).toHaveLength(3)
+    expect(cta.getAllByRole('link')).toHaveLength(1)
     expect(cta.getByRole('link', { name: /see the work/ })).toHaveAttribute('href', '#work')
-    expect(cta.getByRole('link', { name: /download cv/ })).toHaveAttribute('download', 'Santhosh-Rubenraj-Solomon-CV.pdf')
-    const gh = cta.getByRole('link', { name: /^github/ })
+    const readout = within(document.querySelector('.readout') as HTMLElement)
+    expect(readout.getByRole('link', { name: /download cv/ })).toHaveAttribute('download', 'Santhosh-Rubenraj-Solomon-CV.pdf')
+    const gh = readout.getByRole('link', { name: /^github/ })
     expect(gh).toHaveAttribute('href', PROFILE)
     expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '#top')
   })

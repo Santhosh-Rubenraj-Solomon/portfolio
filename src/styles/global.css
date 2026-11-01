@@ -85,7 +85,7 @@ a { color: inherit; text-decoration: none; }
 .clock b { color: var(--ink); font-weight: 500; }
 
 /* -------------------------------------------------------------- panels */
-.panel { border-top: 1px solid var(--line); padding-block: clamp(48px, 8vw, 88px); }
+.panel { border-top: 1px solid var(--line); padding-block: clamp(72px, 9vw, 112px); }
 .panel:first-of-type { border-top: none; }
 .panel-head { display: flex; align-items: center; gap: 12px; margin-bottom: 30px; font-family: var(--mono); font-size: 13px; }
 .panel-head .prompt { color: var(--gold); }
@@ -105,7 +105,7 @@ a { color: inherit; text-decoration: none; }
 .hero h1 { font-size: clamp(34px, 6vw, 68px); line-height: 1.02; letter-spacing: -0.035em; font-weight: 800; margin: 0 0 26px; max-width: 16ch; text-wrap: balance; }
 .hero-thesis { color: var(--muted); font-size: 17px; line-height: 1.7; margin: 0 0 16px; max-width: 56ch; }
 .hero-thesis .ink { color: var(--ink); }
-.hero-bridge { color: var(--gold-2) !important; font-family: var(--mono); font-size: 13.5px; line-height: 1.6; margin: 0 0 26px; max-width: 60ch; }
+.bridge { color: var(--gold-2) !important; font-family: var(--mono); font-size: 13.5px; line-height: 1.6; margin: 0 0 26px; max-width: 60ch; }
 .hero-cta { display: flex; flex-wrap: wrap; gap: 10px; }
 
 .btn { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 13px; font-weight: 500; padding: 10px 16px; border-radius: 8px; cursor: pointer; transition: all 0.15s ease; border: 1px solid var(--line-2); background: var(--panel); color: var(--ink); }
@@ -451,4 +451,55 @@ a { color: inherit; text-decoration: none; }
   .hero h1, .hero .readout { translate: none; transition: none; }
   .rec-name { transition: none; }
   .cur-dot, .cur-ring { display: none !important; }
+}
+
+/* -------------------------------------------------------------- hero composition
+   One thought, room around it, a cropped name behind it, and editor chrome
+   (gutter + file tab) to make the console theme deliberate. Existing tokens only. */
+.hero { position: relative; overflow: hidden; isolation: isolate; }
+.hero-wrap { position: relative; }
+.hero-ghost {
+  position: absolute; z-index: -1; left: 50%; bottom: -0.2em;
+  font-family: var(--sans); font-weight: 800; font-size: clamp(96px, 21vw, 300px); line-height: 1; letter-spacing: -0.05em;
+  color: var(--panel); white-space: nowrap; pointer-events: none; user-select: none;
+  transform: translateX(-50%);
+  translate: calc(var(--px, 0) * 22px) calc(var(--py, 0) * 10px); transition: translate 0.8s ease-out;
+}
+.hero-gutter {
+  position: absolute; top: 0; bottom: 0; right: 100%; margin: 0 14px 0 0; padding: 0; list-style: none; overflow: hidden;
+  font-family: var(--mono); font-size: 11px; line-height: 26px; color: var(--faint); opacity: 0.45; text-align: right;
+  border-right: 1px dashed var(--line); padding-right: 12px; display: none;
+}
+@media (min-width: 1320px) { .hero-gutter { display: block; } }
+.hero-tab {
+  display: inline-flex; align-items: center; gap: 10px; margin-bottom: 22px;
+  font-family: var(--mono); font-size: 11.5px; color: var(--muted);
+  padding: 6px 12px; border: 1px solid var(--line); border-bottom-color: transparent; border-radius: 6px 6px 0 0;
+  background: linear-gradient(var(--panel), transparent);
+}
+.hero-tab .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); }
+.hero-tab .x { color: var(--faint); }
+.hero .hero-thesis { margin-bottom: 28px; }
+.readout-links { display: flex; gap: 8px; margin-top: 10px; }
+.readout-links .btn { flex: 1; justify-content: center; }
+.about .bridge { margin: 0 0 18px; }
+
+/* -------------------------------------------------------------- stack strip */
+.strip { border-block: 1px solid var(--line); overflow: hidden; padding-block: 16px;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
+.strip-track { display: flex; width: max-content; animation: strip 42s linear infinite; }
+.strip:hover .strip-track { animation-play-state: paused; }
+.strip-row { display: flex; margin: 0; padding: 0; list-style: none; }
+.strip-row li { font-family: var(--mono); font-size: 13px; color: var(--muted); letter-spacing: 0.03em; white-space: nowrap; padding-inline: 22px; position: relative; transition: color 0.2s; }
+.strip-row li::after { content: "·"; position: absolute; right: -3px; color: var(--gold); }
+.strip-row li:hover { color: var(--ink); }
+@keyframes strip { to { transform: translateX(-50%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-ghost { translate: none; transition: none; }
+  .strip { -webkit-mask-image: none; mask-image: none; }
+  .strip-track { animation: none; width: auto; }
+  .strip-row { flex-wrap: wrap; justify-content: center; row-gap: 6px; }
+  .strip-row[aria-hidden] { display: none; }
 }

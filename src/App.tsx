@@ -447,6 +447,24 @@ function useHeroParallax(ref: { current: HTMLElement | null }) {
   }, [ref])
 }
 
+/* ------------------------------------------------------------ stack strip */
+const STRIP = ['TypeScript', 'Node.js', 'NestJS', 'Fastify', 'PostgreSQL', 'Prisma', 'Redis', 'gRPC', 'Webhooks', 'Docker', 'Azure', 'CI/CD', 'Event-driven', 'AI agents', 'PRDs']
+
+/* Two copies of the list so the loop has no visible seam; the second is hidden
+   from assistive tech. Pauses on hover; static under reduced motion. */
+function StackStrip() {
+  const row = (hidden: boolean) => (
+    <ul className="strip-row" aria-hidden={hidden || undefined}>
+      {STRIP.map((t) => <li key={t}>{t}</li>)}
+    </ul>
+  )
+  return (
+    <div className="strip" role="region" aria-label="Tools I work with">
+      <div className="strip-track">{row(false)}{row(true)}</div>
+    </div>
+  )
+}
+
 /* ------------------------------------------------------------ cursor */
 /* A dot that tracks the pointer and a ring that trails it. The ring grows over
    interactive things and reads "view" over a project record. */
@@ -853,7 +871,14 @@ export default function App() {
 
       {/* HERO */}
       <header ref={heroRef} className={`panel hero ${heroReady ? 'ready' : ''}`} style={{ borderTop: 'none' }}>
-        <div className="wrap">
+        <span className="hero-ghost" aria-hidden="true">SANTHOSH</span>
+        <div className="wrap hero-wrap">
+          <ol className="hero-gutter" aria-hidden="true">
+            {Array.from({ length: 40 }, (_, i) => <li key={i}>{String(i + 1).padStart(2, '0')}</li>)}
+          </ol>
+          <div className="hero-tab rise" style={{ '--i': 0 } as CSSProperties} aria-hidden="true">
+            <span className="dot" />santhosh.profile.ts<span className="x">×</span>
+          </div>
           <p className="hero-kicker rise" style={{ '--i': 0 } as CSSProperties}>Santhosh Rubenraj Solomon <b>// backend engineer · payments</b></p>
           <div className="hero-grid">
             <div>
@@ -863,13 +888,8 @@ export default function App() {
                 <span className="ink">submit the application, reprocess the payment, write to the repo</span> — is made structurally
                 unreachable first, then deliberately wired. A config flag you can flip is not a safety mechanism.
               </p>
-              <p className="hero-bridge rise" style={{ '--i': 4 } as CSSProperties}>
-                # Backend Engineer with 4 years in a Nordic payments stack. Close enough to the infrastructure to know where it breaks, and just as involved in product direction as code.
-              </p>
               <div className="hero-cta rise" style={{ '--i': 5 } as CSSProperties}>
                 <a className="btn btn-primary" href="#work">see the work {I.arrow}</a>
-                <a className="btn" href="/resume.pdf" download="Santhosh-Rubenraj-Solomon-CV.pdf">download cv {I.down}</a>
-                <a className="btn" href={PROFILE} target="_blank" rel="noopener">github {I.github}</a>
               </div>
             </div>
             <aside className="readout rise" style={{ '--i': 2 } as CSSProperties}>
@@ -879,11 +899,19 @@ export default function App() {
                   <div className="r" key={r.k}><span className="k">{r.k}</span><span className="v">{r.v}</span></div>
                 ))}
               </div>
-              <div className="readout-foot"><StatePill /></div>
+              <div className="readout-foot">
+                <StatePill />
+                <div className="readout-links">
+                  <a className="btn" href="/resume.pdf" download="Santhosh-Rubenraj-Solomon-CV.pdf">download cv {I.down}</a>
+                  <a className="btn" href={PROFILE} target="_blank" rel="noopener">github {I.github}</a>
+                </div>
+              </div>
             </aside>
           </div>
         </div>
       </header>
+
+      <StackStrip />
 
       {/* WORK */}
       <Panel id="work" cmd={<>query <b>--metrics</b> --scope=surfboard</>} tag="load-bearing">
@@ -946,6 +974,9 @@ export default function App() {
         <div className="about-grid">
           <div className="about">
             <h2 className="p-title"><MaskWords text="Engineering payments from Chennai, with an eye for product and resilience." /></h2>
+            <p className="bridge">
+              # Backend Engineer with 4 years in a Nordic payments stack. Close enough to the infrastructure to know where it breaks, and just as involved in product direction as code.
+            </p>
             <p>
               I’m Santhosh. Coming from an <span className="ink">Electronics &amp; Instrumentation</span> background, I entered
               tech as a full-stack intern before finding my niche in payments. Over the last four years, I’ve helped keep backend
