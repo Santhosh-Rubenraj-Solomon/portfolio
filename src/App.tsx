@@ -160,20 +160,31 @@ function useReveal() {
   }, [])
 }
 
+/* The viewer's own time and zone (e.g. "GMT", "EST", "IST"), not mine:
+   a recruiter reads the clock in their own context. */
+function localZone() {
+  try {
+    return new Intl.DateTimeFormat(undefined, { timeZoneName: 'short' })
+      .formatToParts(new Date()).find((p) => p.type === 'timeZoneName')?.value ?? 'local'
+  } catch { return 'local' }
+}
+
 function useClock() {
   const [t, setT] = useState('––:––:––')
+  const [zone, setZone] = useState('local')
   useEffect(() => {
-    const fmt = () => new Date().toLocaleTimeString('en-GB', { timeZone: 'Asia/Kolkata', hour12: false })
+    const fmt = () => new Date().toLocaleTimeString('en-GB', { hour12: false })
     setT(fmt())
+    setZone(localZone())
     const id = window.setInterval(() => setT(fmt()), 1000)
     return () => clearInterval(id)
   }, [])
-  return t
+  return { t, zone }
 }
 
 /* ------------------------------------------------------------ status bar */
 function StatusBar({ active, onOpenPalette }: { active: string; onOpenPalette: () => void }) {
-  const clock = useClock()
+  const { t: clock, zone } = useClock()
   const path = active ? `:~/${active}$` : ':~$'
   return (
     <div className="bar">
@@ -189,7 +200,7 @@ function StatusBar({ active, onOpenPalette }: { active: string; onOpenPalette: (
         </nav>
         <div className="bar-right">
           <span className="status-dot"><i />open to work</span>
-          <span className="clock">IST&nbsp;<b>{clock}</b></span>
+          <span className="clock" title="Your local time">{zone}&nbsp;<b>{clock}</b></span>
         </div>
       </div>
     </div>

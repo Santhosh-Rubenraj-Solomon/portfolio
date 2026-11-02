@@ -114,17 +114,22 @@ describe('StatePill', () => {
   })
 })
 
-describe('IST clock', () => {
-  it('shows Asia/Kolkata time and ticks every second', () => {
+describe('viewer clock', () => {
+  it("shows the viewer's local time and zone, and ticks every second", () => {
     vi.useFakeTimers()
-    vi.setSystemTime(new Date('2026-01-01T00:00:00Z'))
+    const t0 = new Date('2026-01-01T00:00:00Z')
+    vi.setSystemTime(t0)
+    const local = (ms: number) => new Date(t0.getTime() + ms).toLocaleTimeString('en-GB', { hour12: false })
+    const zone = new Intl.DateTimeFormat(undefined, { timeZoneName: 'short' })
+      .formatToParts(t0).find((p) => p.type === 'timeZoneName')!.value
     render(<App />)
     const clock = document.querySelector('.clock b')!
-    expect(clock).toHaveTextContent('05:30:00')
+    expect(clock).toHaveTextContent(local(0))
+    expect(document.querySelector('.clock')).toHaveTextContent(zone)
     act(() => { vi.advanceTimersByTime(1000) })
-    expect(clock).toHaveTextContent('05:30:01')
+    expect(clock).toHaveTextContent(local(1000))
     act(() => { vi.advanceTimersByTime(59_000) })
-    expect(clock).toHaveTextContent('05:31:00')
+    expect(clock).toHaveTextContent(local(60_000))
   })
 })
 
