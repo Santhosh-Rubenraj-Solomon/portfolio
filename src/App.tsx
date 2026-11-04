@@ -247,10 +247,13 @@ function ConcurrencyDemo() {
   const [state, setState] = useState<('idle' | 'pass' | 'block')[]>(Array(N).fill('idle'))
   const [release, setRelease] = useState(false)
   const [fired, setFired] = useState(false)
+  // The setting the displayed run used; the caption must describe that run, not the live toggle.
+  const [runRelease, setRunRelease] = useState(false)
   const timers = useRef<number[]>([])
   const fire = () => {
     timers.current.forEach(clearTimeout)
     setFired(true)
+    setRunRelease(release)
     setState(Array(N).fill('idle'))
     for (let i = 0; i < N; i++) {
       const id = window.setTimeout(() => {
@@ -292,7 +295,7 @@ function ConcurrencyDemo() {
       <p className="demo-note">
         {!fired
           ? 'The same purchase, ten “paid!” messages (network retries). Watch it get recorded once.'
-          : release
+          : runRelease
             ? `${passes} got through — unlocking early re-opens the door, so a late duplicate is processed again (a double-charge).`
             : `Recorded once, ${N - 1} duplicates ignored — the lock is held long enough to swallow every retry.`}
       </p>
@@ -830,11 +833,16 @@ const BOOT_LINES: ReactNode[] = [
   <>› ready.</>,
 ]
 function Boot() {
-  const gated = (() => { try { return sessionStorage.getItem('booted') === '1' } catch { return true } })()
-  const reduce = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  const skip = gated || reduce
+  // Decided once at mount: finish() writes booted=1, and re-reading it on later renders would
+  // unmount the overlay before its `.boot.gone` fade could play.
+  const [skip] = useState(() => {
+    const gated = (() => { try { return sessionStorage.getItem('booted') === '1' } catch { return true } })()
+    const reduce = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    return gated || reduce
+  })
   const [shown, setShown] = useState(skip ? BOOT_LINES.length : 0)
   const [done, setDone] = useState(skip)
+  const [removed, setRemoved] = useState(skip)
   useEffect(() => {
     if (skip) return
     let i = 0
@@ -848,9 +856,18 @@ function Boot() {
     window.addEventListener('pointerdown', onSkip)
     return () => { clearInterval(id); window.removeEventListener('keydown', onSkip); window.removeEventListener('pointerdown', onSkip) }
   }, [])
-  if (skip) return null
+  // Once faded, unmount: on transitionend, with a fallback matching the 0.5s CSS transition
+  // (immediately when reduced motion is preferred).
+  useEffect(() => {
+    if (!done || removed) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setRemoved(true); return }
+    const t = window.setTimeout(() => setRemoved(true), 550)
+    return () => clearTimeout(t)
+  }, [done, removed])
+  if (removed) return null
   return (
-    <div className={`boot ${done ? 'gone' : ''}`} aria-hidden="true">
+    <div className={`boot ${done ? 'gone' : ''}`} aria-hidden="true"
+      onTransitionEnd={(e) => { if (done && e.target === e.currentTarget && e.propertyName === 'opacity') setRemoved(true) }}>
       <div className="boot-inner">
         {BOOT_LINES.slice(0, shown).map((l, i) => <div className="boot-line" key={i}>{l}</div>)}
         <span className="cursor" />

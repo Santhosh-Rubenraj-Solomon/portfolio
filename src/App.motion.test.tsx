@@ -53,7 +53,7 @@ describe('Boot overlay', () => {
   // writes booted=1 and then setDone(true); that re-render sees gated=true -> skip=true -> `return null`,
   // so the overlay is unmounted instantly and the `.boot.gone` 0.5s opacity transition (global.css:338-339)
   // never plays. Expected: the overlay stays mounted with class "gone" so it can fade out.
-  it.skip('BUG: fades out (stays mounted with class "gone") instead of vanishing abruptly', () => {
+  it('BUG: fades out (stays mounted with class "gone") instead of vanishing abruptly', () => {
     vi.useFakeTimers()
     render(<App />)
     act(() => { vi.advanceTimersByTime(260 * 5 + 480) })

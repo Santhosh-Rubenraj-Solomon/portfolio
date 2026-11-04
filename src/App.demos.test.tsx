@@ -121,7 +121,7 @@ describe('ConcurrencyDemo (ledger reconciler)', () => {
   // (closure inside fire()), but the note under the grid reads the *current* `release` state. Toggling
   // "unlock early" after a run makes the note contradict the grid, e.g. grid shows 1 recorded / 9 ignored
   // while the note claims "1 got through — ... a late duplicate is processed again (a double-charge)".
-  it.skip('BUG: toggling "unlock early" after a run should not change the verdict of that run', () => {
+  it('BUG: toggling "unlock early" after a run should not change the verdict of that run', () => {
     vi.useFakeTimers()
     render(<App />)
     const rec = openDemo(NAME)
