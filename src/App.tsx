@@ -5,7 +5,6 @@ import { SIG_D, SIG_DOT_D, SIG_VIEWBOX } from './signature'
 const PROFILE = 'https://github.com/Santhosh-Rubenraj-Solomon'
 const LINKEDIN = 'https://www.linkedin.com/in/santhosh-ruben-raj-solomon'
 const EMAIL = 'santhoshrubenc@gmail.com'
-const REPO = 'https://github.com/Santhosh-Rubenraj-Solomon/AI_agents/tree/main/Documents/santhosh_%28%29'
 
 /* ------------------------------------------------------------------ icons */
 const I = {
@@ -46,8 +45,8 @@ const SURFBOARD: Work[] = [
 type Demo = 'concurrency' | 'review' | 'analyzer' | 'risk' | null
 type Project = {
   name: string; one: string; whyLabel: string; why: string
-  stack: string[]; href: string; run: string; runKind: 'live' | 'demo'; demo: Demo
-  fix?: { label: string; text: string; href: string; hrefLabel: string }
+  stack: string[]; href?: string; run: string; runKind: 'live' | 'demo'; demo: Demo
+  fix?: { label: string; text: string }
 }
 const PROJECTS: Project[] = [
   {
@@ -56,12 +55,10 @@ const PROJECTS: Project[] = [
     whyLabel: 'The clever bit',
     why: 'The safety “lock” that prevents double-processing is deliberately held for 10 seconds after a success — so any duplicate “paid!” in that window is quietly ignored, not charged again. Simple, and easy to reverse if you ever want the opposite.',
     stack: ['NestJS', 'Redis', 'Nginx LB', 'Vercel AI SDK', 'Docker'],
-    href: `${REPO}/ai-ds-ledger-reconciler`, run: 'builds clean · lock verified on Redis', runKind: 'demo', demo: 'concurrency',
+    run: 'builds clean · lock verified on Redis', runKind: 'demo', demo: 'concurrency',
     fix: {
       label: 'What I got wrong → fixed',
       text: 'At first the safety check ran on each server’s private copy of the records, so servers could disagree. I flagged it, then fixed it — one shared database everyone reads, and the safety check became a reusable building block.',
-      href: 'https://github.com/Santhosh-Rubenraj-Solomon/AI_agents/commit/d2dbd6d4d44d0525ffc172bad215740d5b278dbb',
-      hrefLabel: 'the commit that closed it',
     },
   },
   {
@@ -78,7 +75,7 @@ const PROJECTS: Project[] = [
     whyLabel: 'The clever bit',
     why: 'It works out what a project is built with instantly and for free — then only spends the expensive AI on the genuinely hard questions.',
     stack: ['TypeScript', 'Telegraf', 'Claude / GPT-4o', 'SQLite'],
-    href: `${REPO}/AI-agent-code`, run: 'stack-detection demo verified', runKind: 'demo', demo: 'analyzer',
+    run: 'stack-detection demo verified', runKind: 'demo', demo: 'analyzer',
   },
   {
     name: 'Car Repossession Dashboard',
@@ -538,8 +535,7 @@ function Record({ p, idx }: { p: Project; idx: number }) {
         <p className="rec-why"><span className="lbl">{p.whyLabel}</span>{p.why}</p>
         {p.fix && (
           <p className="rec-fix">
-            <span className="lbl">{p.fix.label}</span>{p.fix.text}{' '}
-            <a className="fixlink" href={p.fix.href} target="_blank" rel="noopener">{p.fix.hrefLabel} ↗</a>
+            <span className="lbl">{p.fix.label}</span>{p.fix.text}
           </p>
         )}
         {p.demo && (
@@ -556,7 +552,7 @@ function Record({ p, idx }: { p: Project; idx: number }) {
       {open && p.demo === 'risk' && <RiskDemo />}
       <div className="record-foot">
         <div className="stack">{p.stack.map((s) => <i key={s}>{s}</i>)}</div>
-        <a className="plink" href={p.href} target="_blank" rel="noopener">{I.github} source ↗</a>
+        {p.href && <a className="plink" href={p.href} target="_blank" rel="noopener">{I.github} source ↗</a>}
       </div>
     </article>
   )

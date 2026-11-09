@@ -169,18 +169,18 @@ describe('links', () => {
     expect(c.getByRole('link', { name: /résumé/ })).toHaveAttribute('href', '/resume.pdf')
   })
 
-  it('each project has a GitHub source link', () => {
+  it('each public project has a GitHub source link', () => {
     render(<App />)
     const srcs = within(section('projects')).getAllByRole('link', { name: /source/ })
-    expect(srcs).toHaveLength(4)
+    expect(srcs).toHaveLength(2)
     srcs.forEach((a) => expect(a.getAttribute('href')).toMatch(/^https:\/\/github\.com\/Santhosh-Rubenraj-Solomon/))
-    expect(srcs[1]).toHaveAttribute('href', 'https://github.com/Santhosh-Rubenraj-Solomon/ai-diff-reviewer')
-    expect(srcs[0].getAttribute('href')).toMatch(/AI_agents\/tree\/main\/.*\/ai-ds-ledger-reconciler$/)
+    expect(srcs[0]).toHaveAttribute('href', 'https://github.com/Santhosh-Rubenraj-Solomon/ai-diff-reviewer')
   })
 
-  it('the ledger project links to the fix commit', () => {
+  it('the private ledger project has no links to its source', () => {
     render(<App />)
-    const fix = screen.getByRole('link', { name: /the commit that closed it/ })
-    expect(fix.getAttribute('href')).toMatch(/^https:\/\/github\.com\/Santhosh-Rubenraj-Solomon\/AI_agents\/commit\/[0-9a-f]{40}$/)
+    const rec = screen.getByRole('heading', { name: 'AI-DS Ledger Reconciler' }).closest('article')!
+    expect(within(rec as HTMLElement).queryByRole('link')).toBeNull()
+    expect(rec.querySelector('.rec-fix')).toHaveTextContent(/one shared database/)
   })
 })
